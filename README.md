@@ -1,5 +1,9 @@
 # MMFM music Panel
 
+[![dockeri.co](https://dockeri.co/image/mmhk/mmfm)](https://hub.docker.com/r/mmhk/mmfm)
+
+![GitHub](https://img.shields.io/github/license/mmhk/mmfm)
+
 一个用于内网的在线共享音乐电台，基于`Vue`全家桶开发。
 
 由于音乐API已经被整合到`Panel`，所以此项目自带web服务端。
