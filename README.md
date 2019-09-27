@@ -32,3 +32,8 @@ cd ./dist
 node ./server.js -d ./public
 ```
 
+## Docker 
+```bash
+docker pull mmhk/mmfm
+docker run --rm --name mmfm -p 8011:8011 mmhk/mmfm:latest
+```
