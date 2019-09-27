@@ -84,7 +84,7 @@
           <i class="iconfont icon-close"></i> 删除
         </a>
       </div>
-      <a class="fm-intro-btn" target="_blank" alt="帮助" title="帮助" href="_book/">
+      <a class="fm-intro-btn" target="_blank" alt="帮助" title="帮助" href="https://github.com/MMHK/mmfm">
         <i class="iconfont icon-Info"></i> v2.5
       </a>
     </div>
