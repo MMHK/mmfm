@@ -1,0 +1,71 @@
+@import "common";
+@import "base";
+
+@import "iconfont";
+
+.page-enter-active,
+.page-enter-to {
+    transition: 0.3s ease;
+}
+
+.page-leave-active {
+    transition-duration: 0;
+}
+
+.page-enter {
+    opacity: 0;
+}
+
+body {
+    font-family: "Microsoft YaHei", "Microsoft JhengHei", Arial, Helvetica, sans-serif;
+    background-color: #f2f2f2;
+    font-size: rem(14px);
+}
+
+@media (max-width:768px) {
+    body {
+        font-size: rem(28px);
+    }
+}
+
+.clear {
+    display: block;
+    zoom: 1;
+}
+
+.clear:after,
+.clear:before {
+    display: table;
+    line-height: 0;
+    content: ""
+}
+
+.clear:after {
+    clear: both;
+}
+
+input,
+input:focus {
+    border: 0;
+    outline: none;
+}
+
+.btn {
+    transition: 0.5s ease;
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+    padding: 0 0.25em;
+    margin: 0;
+    vertical-align: middle;
+
+    border-radius: 5px;
+
+    &:hover,
+    &:focus {
+        color: rgb(2, 161, 209);
+    }
+}
+
+@import "player";
+@import "search";

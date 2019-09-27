@@ -1,0 +1,21 @@
+html {
+  font-size: d-vw($base_rem);
+}
+
+@media (min-width: $desktop_layout_width * 1px) {
+  html {
+    font-size: $base_rem;
+  }
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: m-vw($base_rem);
+  }
+}
+
+.container {
+  width: 100%;
+  max-width: $desktop_layout_width * 1px;
+  margin: 0 auto;
+}

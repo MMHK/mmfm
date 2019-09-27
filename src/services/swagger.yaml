@@ -1,0 +1,112 @@
+swagger: '2.0'
+info:
+  description: This music API for qq netease xiami
+  version: 1.0.0
+  title: Music API for QQ NetEase Xiami
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+host: localhost
+basePath: /api
+tags:
+  - name: song
+    description: song of QQ NetEase Xiami
+schemes:
+  - http
+paths:
+  /song/search:
+    get:
+      tags:
+        - song
+      summary: Search song of all platform
+      description: ''
+      produces:
+        - application/json
+      parameters:
+        - name: keyword
+          in: query
+          type: string
+          description: Name of song
+          required: true
+        - in: query
+          name: offset
+          type: string
+          description: offset of page
+          required: false
+      responses:
+        200:
+          description: "Success"
+      security: []
+  /song/detail:
+    get:
+      tags:
+        - song
+      summary: get song detail
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: vendor
+          type: string
+          description: platform
+          required: true
+        - in: query
+          name: id
+          type: number
+          description: ID of song
+          required: true
+      responses:
+        200:
+          description: "Success"
+  /song/url:
+    get:
+      tags:
+        - song
+      summary: get song URL
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: vendor
+          type: string
+          description: platform
+          required: true
+        - in: query
+          name: id
+          type: number
+          description: ID of song
+          required: true
+      responses:
+        200:
+          description: "Success"
+          
+  /song/save:
+    post:
+      tags:
+        - song
+      summary: save play list
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          type: string
+          name: list
+          description: playlist JSON
+          required: true
+      responses:
+        200:
+          description: "Success"
+          
+  /song/get:
+    get:
+      tags:
+        - song
+      summary: load PlayList
+      produces:
+        - application/json
+      responses:
+        200:
+          description: "Success"
+    

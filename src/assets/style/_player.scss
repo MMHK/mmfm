@@ -1,0 +1,350 @@
+.player-wrap {
+    margin: 0 auto;
+    position: relative;
+    width: rem(350px);
+    background-color: #fff;
+    min-height: rem(820px);
+    height: auto;
+    border: 0;
+    margin: 0 auto;
+    padding: 0.5em 0 1em 0;
+    box-shadow: 0 rem(4px) rem(18px) rem(2px) #E2E2E2;
+
+    .icon-music {
+        color: rgb(247, 115, 115);
+    }
+
+    .icon-download {
+        color: rgb(38, 122, 248);
+    }
+
+    .icon-download {
+        font-size: 0.8em;
+    }
+
+    .icon-skip-next,
+    .icon-skip-previous {
+        font-size: 1.5em;
+    }
+
+    .btn-select-all {
+        float: right;
+    }
+
+    .btn-delete {
+        background: #f53b3b;
+        color: #ffffff;
+        padding: 0.15em 0.8em;
+
+        &:hover,
+        &:focus {
+            box-shadow: 0 0 rem(10px) rgba(247, 58, 33, 0.5);
+        }
+    }
+
+    .name-title {
+        margin: 0.25em 0;
+    }
+
+    .time-wrap {
+        font-size: 0.6em;
+    }
+}
+
+@media (max-width:768px) {
+    .player-wrap {
+        width: 100%;
+        min-height: 100vh;
+        box-sizing: border-box;
+    }
+}
+
+.fm-ablums {
+    position: relative;
+    text-align: center;
+    margin: 0 rem(20px);
+    padding-top: rem(30px);
+    background-color: #fff;
+    zoom: 1;
+}
+
+.player-wrap .fm-ablums .fm-ablums-photo {
+    position: relative;
+    display: inline-block;
+    width: 40%;
+    height: 40%;
+    text-align: center;
+    margin: rem(20px) auto;
+    border: rem(2px) solid rgba(0, 0, 0, 0.01);
+    zoom: 1;
+}
+
+.fm-ablums-photo>img {
+    width: 100%;
+}
+
+.player-wrap .fm-ablums .fm-ablums-photo img {
+    display: block;
+}
+
+.player-wrap .fm-ablums .fm-ablums-name {
+    text-align: center;
+    zoom: 1;
+    text-shadow: 0 rem(1px) rem(2px) #c8c8c8;
+}
+
+.player-wrap .fm-ablums .fm-ablums-name span {
+    display: inline-block;
+    margin-bottom: rem(20px);
+}
+
+.player-wrap .fm-tools {
+    position: relative;
+    display: block;
+    text-align: center;
+    margin-bottom: rem(60px);
+    font-size: 1.25em;
+}
+
+.fm-tools .fm-add-url {
+    display: inline-block;
+    padding: rem(2px) rem(4px);
+    margin-right: rem(4px);
+    border-bottom: rem(1px) solid #f4f4f4;
+    color: #299edf;
+    width: 70%;
+}
+
+.player-wrap .fm-tools .fm-add-url:focus {
+    border-bottom-color: #299edf;
+}
+
+.player-wrap .fm-list-title {
+    color: #aaa;
+    padding: rem(8px) rem(2px);
+    border-bottom: rem(1px) solid #ccc;
+    text-align: left;
+}
+
+
+.player-wrap .fm-list-title .check-all .fa {
+    font-size: rem(21px);
+    vertical-align: middle;
+    -webkit-font-smoothing: subpixel-antialiased;
+    box-shadow: none;
+}
+
+.player-wrap .fm-list-title .check-all.on {
+    font-weight: bold;
+    color: #ff7600
+}
+
+.player-wrap .fm-list {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: rem(258px);
+    position: relative;
+    padding: 1em 0;
+}
+
+.fm-list .icon-music {
+    position: absolute;
+}
+
+.fm-list .music-url {
+    padding-left: 1.25em;
+}
+
+.fm-list .fm-list-item {
+    background-color: #fff;
+    padding: rem(4px) rem(5px);
+    line-height: 1.5;
+    display: block;
+    zoom: 1;
+    color: #299edf;
+}
+
+.fm-list .fm-list-item:hover {
+    background-color: #f7f7f7;
+}
+
+.fm-list .fm-list-item:after,
+.fm-list .fm-list-item:before {
+    display: table;
+    line-height: 0;
+    content: ""
+}
+
+.fm-list .fm-list-item:after {
+    clear: both;
+}
+
+.fm-list .fm-list-item .item-name {
+    display: block;
+    float: left;
+    color: #77A0B9;
+    pointer-events: none;
+}
+
+.fm-list .fm-list-item .item-contrl {
+    color: #888;
+    display: block;
+    float: right;
+    margin-right: rem(2px);
+}
+
+.fm-list .fm-list-item.playing {
+    background: #88C6D8;
+}
+
+.fm-list .fm-list-item.playing .music-url {
+    color: #fff;
+}
+
+.fm-list .fm-list-item.playing .item-name {
+    color: #fff;
+    font-weight: bold;
+}
+
+.fm-list .fm-list-item.playing .item-contrl {
+    color: #fff;
+}
+
+.fm-list .fm-list-item.playing .item-contrl .play,
+.fm-list .fm-list-item.playing .item-contrl .delete,
+.fm-list .fm-list-item.playing .item-contrl .item-checkbox {
+    display: none;
+}
+
+.fm .ablums-contrl {
+    display: block;
+    position: relative;
+    margin-bottom: 1em;
+    text-align: center;
+    font-size: 1.5em;
+}
+
+.fm .ablums-contrl .contrl-icon {
+    color: #000;
+    display: inline-block;
+    margin: 0 0.5em;
+    cursor: pointer;
+    vertical-align: baseline;
+}
+
+.fm .ablums-contrl .contrl-icon:hover {
+    color: #299edf;
+}
+
+
+/* color */
+
+.music-icon {
+    color: #299edf;
+    margin-right: rem(7px);
+    float: left;
+    margin-top: rem(3px);
+}
+
+.playing .music-icon {
+    color: #fff;
+}
+
+.music-url {
+    display: inline-block;
+    max-width: rem(190px);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    white-space: nowrap;
+    color: #299edf;
+}
+
+.music-url:hover {
+    text-decoration: underline;
+}
+
+.audioplayer {
+    visibility: hidden;
+}
+
+.fm-sort-placeholder {
+    height: rem(28px);
+    width: 100%;
+    background-color: rgba(159, 197, 208, 0.10);
+    opacity: .8;
+    zoom: 1;
+}
+
+.fm-intro-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: #7BD0DE;
+    text-decoration: none;
+}
+
+.fm-tools {
+    position: relative;
+}
+
+.search-list {
+    position: absolute;
+    top: rem(35px);
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.7);
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.search-item {
+    list-style: none;
+    padding: 0 1em;
+    margin: 0;
+    text-align: left;
+}
+
+.search-list-transition {
+    transition: all .5s ease;
+}
+
+.search-list-enter,
+.search-list-leave {
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.search-item:hover {
+    background: rgba(159, 197, 208, 1);
+}
+
+.search-item img {
+    float: left;
+    width: 20%;
+}
+
+.search-item .fm-add-btn {
+    float: right;
+    margin-top: 1em;
+}
+
+.search-item p {
+    float: left;
+    overflow: hidden;
+    word-wrap: break-word;
+    width: 60%;
+    padding: 0.5em 0 0 1em;
+}
+
+@media(max-width: rem(768px)) {
+    .fm {
+        padding: 0;
+    }
+
+    .fm .player-wrap {
+        width: 100%;
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "name": "mmfm-vue-service",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {},
+    "dependencies": {
+      "@suen/music-api": "^1.1.11",
+      "body-parser": "^1.19.0",
+      "cli": "^1.0.1",
+      "express": "^4.17.1",
+      "socket.io": "^2.2.0",
+      "swagger-ui-express": "^4.0.7"
+    }
+  }
+  

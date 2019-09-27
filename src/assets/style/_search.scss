@@ -1,0 +1,109 @@
+.search-penal {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    left: 0;
+    top: 0;
+
+    font-size: 1.25em;
+
+    .wrap {
+        background: #ffffff;
+        opacity: 0.9;
+        position: relative;
+        max-width: rem(800px);
+        margin: 1em auto;
+    }
+
+    .list-wrap {
+        min-height: rem(300px);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .btn-close {
+        position: absolute;
+        right: 0.5em;
+        top: 0.5em;
+    }
+
+    .search-group {
+        text-align: center;
+        padding: 0.5em 0;
+    }
+
+    .table {
+        width: 100%;
+        line-height: 2;
+        border-collapse:collapse;
+        border: 0;
+
+        font-size: rem(14px);
+
+        img {
+            vertical-align: middle;
+        }
+
+        .vendor {
+            text-align: center;
+        }
+
+        .title > img {
+            float: left;
+            margin-right: 0.5em;
+        }
+        .title > strong {
+            font-size: 1.25em;
+            line-height: 1;
+        }
+    }
+
+    .search-input {
+        width: 70%;
+        border-bottom: 1px solid #087bff;
+        margin-right: 0.5em;
+        padding: 0.25em;
+
+        &:focus {
+            box-shadow: 0 0 rem(10px) rgba(28, 150, 250, 0.5);
+        }
+    }
+
+    .btn-search {
+        border-radius: 5px;
+        padding: 0.15em 0.5em;
+        color: #ffffff;
+        background: #087bff;
+    }
+
+    .icon-search {
+        vertical-align: top;
+    }
+
+    .song-list {
+        cursor: pointer;
+        
+        &:nth-child(odd) {
+            background: #d2e6fc;
+        }
+
+        &:hover {
+            background-color: #d2d5da;
+        }
+    }
+}
+
+.search-group {
+
+    input,
+    button {
+        display: inline-block;
+        font-size: 1em;
+    }
+}
+
+@media (max-width:768px) {
+    .search-penal .wrap {
+        padding: 2em 0 0 0;
+    }
+}
