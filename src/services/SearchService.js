@@ -53,4 +53,8 @@ export default class {
                 return Promise.reject()
             })
     }
+
+    hit(url) {
+        return axios.get(url);
+    }
 }

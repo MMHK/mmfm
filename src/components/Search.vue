@@ -80,6 +80,11 @@ export default {
         }
         return Promise.reject();
       })
+      .then(song => {
+        return search.hit(song.src).then(data => {
+          return Promise.resolve(song);
+        });
+      })
       .then(data => {
         EventBus.$emit("song.add", data);
         this.$emit("close");
