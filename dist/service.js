@@ -9,7 +9,6 @@ const SocketIO = require('socket.io');
 const swaggerDocument = require('./swagger.json');
 const path = require("path");
 const crypto = require('crypto');
-const md5 = crypto.createHash('md5');
 const fs = require('fs');
 const request = require("request");
 
@@ -118,6 +117,7 @@ function downloadFile(url, saveAs) {
 
 app.post("/song/preload", async(req, res) => {
     let url = req.body.url || "",
+        md5 = crypto.createHash('md5'),
         hash = md5.update(url).digest('hex'),
         cachePath = path.join(webRoot, "cache");
 
