@@ -28,10 +28,12 @@
 </template>
 <script>
 import SearchService from "../services/SearchService"
+import SongService from "../services/SongService"
 import { EventBus } from "../services/Bus"
 import { Promise } from 'q';
 
 let search = new SearchService();
+let songService = new SongService();
 
 export default {
   data() {
@@ -84,6 +86,9 @@ export default {
         return search.hit(song.src).then(data => {
           return Promise.resolve(song);
         });
+      })
+      .then(data => {
+        return songService.preload(data)
       })
       .then(data => {
         EventBus.$emit("song.add", data);

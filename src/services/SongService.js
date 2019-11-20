@@ -4,8 +4,9 @@ import qs from "qs";
 export default class {
     constructor() {
         this.API = global.API_URL || "";
+        this.request = axios.create();
 
-        axios.interceptors.response.use((response) => {
+        this.request.interceptors.response.use((response) => {
             if (response.data) {
                 return Promise.resolve(response.data);
             }
@@ -25,13 +26,27 @@ export default class {
                 cover: item["cover"] || ""
             }
         });
-        return axios.post(this.API + "/song/save",
+        return this.request.post(this.API + "/song/save",
             qs.stringify({
                 list: JSON.stringify(src)
             }));
     }
 
+    preload(song) {
+        return this.request.post(this.API + "/song/preload",
+            qs.stringify({
+                url: song.src
+            }))
+            .then((data) => {
+                if (data.status) {
+                    song.src = data.url
+                    return Promise.resolve(song)
+                }
+                return Promise.reject()
+            });
+    }
+
     getPlaylist() {
-        return axios.get(this.API + "/song/get");
+        return this.request.get(this.API + "/song/get");
     }
 }

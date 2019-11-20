@@ -3,10 +3,20 @@ import axios from "axios";
 export default class {
     constructor(){
         this.API = global.SEARCH_API_URL || "";
+        this.request = axios.create();
+
+        this.request.interceptors.response.use((response) => {
+            if (response.data) {
+                return Promise.resolve(response.data);
+            }
+            return Promise.reject();
+        }, (error) => {
+            return Promise.reject(error);
+        });
     }
 
     search(search) {
-        return axios
+        return this.request
             .get(this.API + "/search", {
                 params: {
                     keyword: search
@@ -39,7 +49,7 @@ export default class {
     }
 
     detail(platform, id) {
-        return axios
+        return this.request
             .get(this.API + "/url", {
                 params:{
                     vendor: platform,
@@ -55,6 +65,6 @@ export default class {
     }
 
     hit(url) {
-        return axios.get(url);
+        return this.request.get(url);
     }
 }

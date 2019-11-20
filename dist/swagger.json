@@ -10,7 +10,7 @@
     }
   },
   "host": "localhost",
-  "basePath": "/api",
+  "basePath": "/",
   "tags": [
     {
       "name": "song",
@@ -21,7 +21,7 @@
     "http"
   ],
   "paths": {
-    "/song/search": {
+    "/api/song/search": {
       "get": {
         "tags": [
           "song"
@@ -55,7 +55,7 @@
         "security": []
       }
     },
-    "/song/detail": {
+    "/api/song/detail": {
       "get": {
         "tags": [
           "song"
@@ -87,7 +87,7 @@
         }
       }
     },
-    "/song/url": {
+    "/api/song/url": {
       "get": {
         "tags": [
           "song"
@@ -155,6 +155,34 @@
         "summary": "load PlayList",
         "produces": [
           "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/song/preload": {
+      "post": {
+        "tags": [
+          "song"
+        ],
+        "summary": "preload a song url, conver to local url",
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "formData",
+            "type": "string",
+            "name": "url",
+            "description": "audio file url",
+            "required": true
+          }
         ],
         "responses": {
           "200": {

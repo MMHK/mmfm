@@ -52,13 +52,13 @@ module.exports = {
     devServer: {
         proxy: {
             "/api" : {
-                target: "http://192.168.33.6:8888"
+                target: "http://127.0.0.1:8011"
             },
             "/io" : {
-                target: "http://192.168.33.6:8888"
+                target: "http://127.0.0.1:8011"
             },
             "/song" : {
-                target: "http://192.168.33.6:8888"
+                target: "http://127.0.0.1:8011"
             }
         }
     }

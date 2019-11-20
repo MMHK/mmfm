@@ -7,14 +7,14 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 host: localhost
-basePath: /api
+basePath: /
 tags:
   - name: song
     description: song of QQ NetEase Xiami
 schemes:
   - http
 paths:
-  /song/search:
+  /api/song/search:
     get:
       tags:
         - song
@@ -37,7 +37,7 @@ paths:
         200:
           description: "Success"
       security: []
-  /song/detail:
+  /api/song/detail:
     get:
       tags:
         - song
@@ -58,7 +58,7 @@ paths:
       responses:
         200:
           description: "Success"
-  /song/url:
+  /api/song/url:
     get:
       tags:
         - song
@@ -106,6 +106,25 @@ paths:
       summary: load PlayList
       produces:
         - application/json
+      responses:
+        200:
+          description: "Success"
+          
+  /song/preload:
+    post:
+      tags:
+        - song
+      summary: preload a song url, conver to local url
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          type: string
+          name: url
+          description: audio file url
+          required: true
       responses:
         200:
           description: "Success"
