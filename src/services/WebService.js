@@ -27,14 +27,12 @@ const webRoot = options.webroot;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-swaggerDocument.host = `${options.host}:${options.port}`
+app.use('/swagger', (req, res, next) =>{
+    swaggerDocument.host = req.get('host');
+    req.swaggerDoc = swaggerDocument;
+    next();
+},swaggerUi.serve, swaggerUi.setup());
 
-app.get('/swagger', swaggerUi.setup(swaggerDocument));
-app.use('/swagger', swaggerUi.serve, (req, res) =>{
-    swaggerDocument.host = req.get('host')
-    let htmlWithOptions = swaggerUi.generateHTML(swaggerDocument)
-    res.send(htmlWithOptions)
-});
 
 app.get('/api/song/search', async (req, res) => {
     const search = req.query.keyword
@@ -89,7 +87,7 @@ function downloadFile(url, saveAs) {
     let file = fs.createWriteStream(saveAs);
 
     return new Promise((resolve, reject) => {
-        let stream = request({
+        request({
             /* Here you should specify the exact link to the file you are trying to download */
             uri: url,
             headers: {
@@ -137,9 +135,11 @@ app.post("/song/preload", async(req, res) => {
 
     await downloadFile(url, path.join(cachePath, hash))
 
+    let host = req.get("host");
+
     await res.send(JSON.stringify({
         status: 1,
-        url: `http://${options.host}:${options.port}/cache/${hash}`
+        url: `http://${host}/cache/${hash}`
     }))
 });
 

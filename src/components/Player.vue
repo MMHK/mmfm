@@ -170,6 +170,19 @@ export default {
         this.updatePlaylist();
       });
 
+      EventBus.$on(ChatService.CMD.playlist.current, (args) => {
+         let item = this.playlist.findIndex(val => {
+            return val.src == args[0].url;
+        })
+
+        this.PlayItem(item || 0);
+        this.album = args[0];
+        this.playing = false;
+        this.paused = true;
+        this.currentSecond = args[2] || 0;
+        this.totalSecond = args[3] || 0;
+      });
+
       chat.player().current();
     });
 
