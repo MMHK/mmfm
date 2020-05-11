@@ -161,9 +161,12 @@ export default {
         this.totalSecond = args[3] || 0;
       });
 
-      EventBus.$on(ChatService.CMD.player.pause, () => {
+      EventBus.$on(ChatService.CMD.player.pause, (args) => {
         this.playing = false;
         this.paused = true;
+        this.album = args[0];
+        this.currentSecond = args[2] || 0;
+        this.totalSecond = args[3] || 0;
       });
 
       EventBus.$on(ChatService.CMD.playlist.update, () => {
