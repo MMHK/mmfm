@@ -82,11 +82,6 @@ export default {
         }
         return Promise.reject();
       })
-      .then(song => {
-        return search.hit(song.src).then(data => {
-          return Promise.resolve(song);
-        });
-      })
       .then(data => {
         return songService.preload(data)
       })
