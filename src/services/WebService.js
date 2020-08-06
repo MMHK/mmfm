@@ -10,7 +10,7 @@ const swaggerDocument = require('./swagger.json');
 const path = require("path");
 const crypto = require('crypto');
 const fs = require('fs');
-const request = require("request");
+const FetchStream = require("fetch").FetchStream;
 
 const options = cli.parse({
     host: [ 'b', 'web server listen on address', 'ip', "0.0.0.0"], 
@@ -84,12 +84,10 @@ app.get('/api/song/url', async (req, res) => {
 let SongList = [];
 
 function downloadFile(url, saveAs) {
-    let file = fs.createWriteStream(saveAs);
+    const fileStream = fs.createWriteStream(saveAs);
 
     return new Promise((resolve, reject) => {
-        request({
-            /* Here you should specify the exact link to the file you are trying to download */
-            uri: url,
+        const req = new FetchStream(url, {
             headers: {
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Encoding': 'gzip, deflate, br',
@@ -98,18 +96,23 @@ function downloadFile(url, saveAs) {
                 'Connection': 'keep-alive',
                 'Upgrade-Insecure-Requests': '1',
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'
-            },
-            /* GZIP true for most of the websites now, disable it if you don't need it */
-            gzip: true
-        })
-        .pipe(file)
-        .on('finish', () => {
+            }
+        });
+
+        req.on("meta", (meta) => {
+            if (meta.status != 200) {
+                reject();
+            }
+        });
+        req.on('end', () => {
             console.log(`The file is finished downloading.`);
             resolve();
-        })
-        .on('error', (error) => {
+        });
+        req.on('error', (error) => {
             reject(error);
-        })
+        });
+
+        req.pipe(fileStream);
     });
 }
 
@@ -133,7 +136,15 @@ app.post("/song/preload", async(req, res) => {
         });
     }
 
-    await downloadFile(url, path.join(cachePath, hash))
+    try {
+        await downloadFile(url, path.join(cachePath, hash))
+    } catch (err) {
+        await res.send(JSON.stringify({
+            status: false,
+            error: err
+        }));
+        return;
+    }
 
     let host = req.get("host");
 
@@ -173,6 +184,14 @@ io.on("connection", (socket) => {
 
 app.use(express.static(webRoot));
 
-cli.info(`web root: ${webRoot}`);
-cli.ok(`server listen on: http://${options.host}:${options.port}`);
-server.listen(options.port, options.host);
+module.exports = {
+    downloadFile,
+    app
+};
+
+if (require && require.main === module) {
+    cli.info(`web root: ${webRoot}`);
+    cli.ok(`server listen on: http://${options.host}:${options.port}`);
+    server.listen(options.port, options.host);
+}
+
