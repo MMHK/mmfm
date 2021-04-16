@@ -1,7 +1,17 @@
-const service = require("../src/services/WebService");
+const qqApi = require('@suen/music-api').qq;
+const neteaseApi = require('@suen/music-api').netease;
+const MiguService = require("../src/services/provider/migu");
+const KuwoService = require("../src/services/provider/kuwo");
+const QQService = require("../src/services/provider/qq");
+const neteaseService = require("../src/services/provider/netease");
 const path = require("path");
 
-describe("Sample", function () {
+function combineSearch(search) {
+    return Promise.all([QQService.search(search), neteaseService.search(search),
+        MiguService.search(search), KuwoService.search(search)])
+}
+
+describe("WebService", function () {
 
 
     it("downloadFile", async function () {
@@ -12,5 +22,18 @@ describe("Sample", function () {
         const res = await service.downloadFile("http://120.41.44.24/amobile.music.tc.qq.com/", tempFile);
 
         console.log(res);
+    });
+
+    it("combineSearch", async function () {
+        this.timeout(60000);
+
+        const result = await combineSearch("推开世界的门").then((dataList) => {
+            return Array.from(dataList).reduce(function (last, row) {
+                // console.log(row.result);
+                return last.concat(row.result)
+            }, [])
+        });
+
+        console.log(result);
     });
 });
