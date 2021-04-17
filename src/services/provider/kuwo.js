@@ -75,19 +75,17 @@ function wrapFunc() {
 
 const kuwo = wrapFunc();
 
-module.exports = {
-    search(key) {
-        const keywords = encodeURI(encodeURI(key));
+exports.search = (key) => {
+    const keywords = encodeURI(encodeURI(key));
 
-        return new Promise(resolve => {
-            kuwo.search(`/search?keywords=${keywords}&type=0&curpage=1`)
-                .success(resolve)
-        })
-    },
+    return new Promise(resolve => {
+        kuwo.search(`/search?keywords=${keywords}&type=0&curpage=1`)
+            .success(resolve)
+    })
+};
 
-    song(result) {
-        return new Promise((resolve, reject) => {
-            kuwo.bootstrap_track(result, resolve, reject);
-        })
-    }
+exports.song = (result) => {
+    return new Promise((resolve, reject) => {
+        kuwo.bootstrap_track(result, resolve, reject);
+    })
 };

@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const cli = require("cli");
 const bodyParser = require("body-parser");
-const musicApi = require('@suen/music-api').default;
+const musicApi = require('./MusieApi');
 const swaggerUi = require('swagger-ui-express')
 const server = require('http').Server(app);
 const SocketIO = require('socket.io');
@@ -36,49 +36,84 @@ app.use('/swagger', (req, res, next) =>{
 
 app.get('/api/song/search', async (req, res) => {
     const search = req.query.keyword
-    const offset = req.query.offset || 0
 
     if (!search) {
         res.status(400).send({
+            status: false,
             error: '参数错误'
-        })
+        });
         return
     }
-    let data = await musicApi.searchSong(search, offset)
-    res.send(data)
+    let data;
+    try {
+        data = await musicApi.search(search);
+    } catch (e) {
+        res.status(500).send({
+            status: false,
+            error: e
+        });
+        return;
+    }
+
+    res.send({
+        status: true,
+        data
+    })
 });
 
 app.get('/api/song/detail', async (req, res) => {
-    const vendor = req.query.vendor
-    const id = req.query.id || 0
+    const vendor = req.query.vendor;
+    const id = req.query.id || 0;
 
     if (!id || !vendor) {
         res.status(400).send({
+            status: false,
             error: '参数错误'
-        })
+        });
         return
     }
-    let data = await musicApi.getSongDetail(vendor, id)
-    res.send(data)
+    let data;
+    try {
+        data  = await musicApi.song(id);
+    } catch (e) {
+        res.status(500).send({
+            status: false,
+            error: e
+        });
+        return;
+    }
+    res.send({
+        status: true,
+        data
+    })
 });
 
 app.get('/api/song/url', async (req, res) => {
-    const vendor = req.query.vendor
-    const id = req.query.id || 0
+    const vendor = req.query.vendor;
+    const id = req.query.id || 0;
 
     if (!id || !vendor) {
         res.status(400).send({
+            status: false,
             error: '参数错误'
-        })
+        });
         return
     }
-    let data = await musicApi.getSongUrl(vendor, id)
-    let url = data.data["url"]
-    if (url && vendor == "qq") {
-        url = url.replace("http://isure.stream.qqmusic.qq.com", "http://aqqmusic.tc.qq.com/amobile.music.tc.qq.com")
-        data.data["url"] = url
+    let data;
+    try {
+        data = await musicApi.url(id);
+    } catch (e) {
+        res.status(500).send({
+            status: false,
+            error: e
+        });
+        return;
     }
-    res.send(data)
+
+    res.send({
+        status: true,
+        data
+    })
 });
 
 let SongList = [];
@@ -175,7 +210,7 @@ io.on("connection", (socket) => {
     });
     socket.on("disconnect", () => {
         console.log("on disconnect");
-    })
+    });
 
     socket.on("error", (error) => {
         console.log(error);
@@ -183,11 +218,6 @@ io.on("connection", (socket) => {
 });
 
 app.use(express.static(webRoot));
-
-module.exports = {
-    downloadFile,
-    app
-};
 
 if (require && require.main === module) {
     cli.info(`web root: ${webRoot}`);

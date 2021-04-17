@@ -11,7 +11,7 @@
       </div>
       <div class="list-wrap">
         <table class="table">
-          <tr class="song-list" v-for="item in songList">
+          <tr class="song-list" :key="item.id" v-for="item in songList">
             <td class="vendor" width="50"><img width="50%" :src="'image/' + item.vendor + '.png'" /></td>
             <td class="title"><img :src="item.cover" height="50" />
             <strong>{{item.name}}</strong>
@@ -32,8 +32,8 @@ import SongService from "../services/SongService"
 import { EventBus } from "../services/Bus"
 import { Promise } from 'q';
 
-let search = new SearchService();
-let songService = new SongService();
+const searchInstance = new SearchService();
+const songService = new SongService();
 
 export default {
   data() {
@@ -45,7 +45,7 @@ export default {
   },
 
   watch: {
-    show(val, oldVal) {
+    show(val) {
       if (!val) {
         this.searchText = "";
         this.songList = [];
@@ -70,11 +70,11 @@ export default {
     },
     add(vendor, id) {
       this.loadingFlag = true;
-      search.detail(vendor, id)
+      searchInstance.detail(vendor, id)
       .then((data) => {
         let song = this.songList.find((item) => {
           return (item.vendor == vendor && item.id == id);
-        })
+        });
         if (song) {
           song.src = data.url;
           song.id = "" + song.id;
@@ -95,7 +95,7 @@ export default {
     },
     fetchSearch() {
       this.loadingFlag = true;
-      search
+      searchInstance
         .search(this.searchText)
         .then(data => {
           this.songList = data;

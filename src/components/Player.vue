@@ -47,7 +47,7 @@
       </div>
       <div id="list" class="fm-list clear ui-sortable">
         <draggable v-model="playlist" @change="sortPlayList">
-          <div
+          <div :key="index"
             v-for="(item, index) in playlist"
             drop="handleDrop"
             :class="['fm-list-item', playingClass[index]]"
@@ -85,7 +85,7 @@
         </a>
       </div>
       <a class="fm-intro-btn" target="_blank" alt="帮助" title="帮助" href="https://github.com/MMHK/mmfm">
-        <i class="iconfont icon-Info"></i> v2.5
+        <i class="iconfont icon-Info"></i> v2.6
       </a>
     </div>
   </div>
@@ -293,7 +293,7 @@ export default {
     },
 
     sortPlayList() {
-      song.savePlaylist(this.playlist).then(json => {
+      song.savePlaylist(this.playlist).then(() => {
         let playingClass = [],
           playlistCheckClass = [];
 

@@ -1,0 +1,74 @@
+const MiguService = require("./provider/migu");
+const KuwoService = require("./provider/kuwo");
+const QQService = require("./provider/qq");
+const neteaseService = require("./provider/netease");
+const flatCache = require('flat-cache');
+const os = require("os");
+
+const cache = flatCache.load("musicCache", os.tmpdir());
+
+exports.search = (keywork) => {
+    return Promise.all([QQService.search(keywork), neteaseService.search(keywork),
+        MiguService.search(keywork), KuwoService.search(keywork)])
+        .then((dataList) => {
+            const list = Array.from(dataList).reduce(function (last, row) {
+                if (row.result && row.result.length > 0 && row.result[0].source && !last[row.result[0].source]) {
+                    last[row.result[0].source] = {
+                        total: row.total,
+                        songs: Array.from(row.result).map((item) => {
+                            cache.setKey(item.id, item);
+
+                            return {
+                                album: {
+                                    cover: item.img_url
+                                },
+                                artists: [
+                                    {
+                                        name: item.artist
+                                    }
+                                ],
+                                name: item.title,
+                                id: item.id,
+                                link: item.source_url,
+                                vendor: row.source
+                            }
+                        })
+                    };
+                }
+                return last
+            }, {});
+
+            cache.save();
+
+            return list;
+        })
+};
+
+exports.song = (track_id) => {
+    const track = cache.getKey(track_id);
+    if (!track) {
+        return Promise.reject("no cache found")
+    }
+    return Promise.resolve(track);
+};
+
+exports.url = (track_id) => {
+    const track = cache.getKey(track_id);
+    if (!track) {
+        return Promise.reject("no cache found")
+    }
+
+    const provider = track.source;
+    switch (provider) {
+        case "qq":
+            return QQService.song(track);
+        case "netease":
+            return neteaseService.song(track);
+        case "kuwo":
+            return KuwoService.song(track);
+        case "migu":
+            return MiguService.song(track);
+    }
+
+    return Promise.reject("no provider found");
+};

@@ -39,7 +39,7 @@ export default class {
             }))
             .then((data) => {
                 if (data.status) {
-                    let dest = data.url.replace(/^http(s?):\/\/([^\/]+)/i, "http://" + location.host)
+                    let dest = data.url.replace(/^http(s?):\/\/([^/]+)/i, "http://" + location.host)
                     song.src = dest
                     return Promise.resolve(song)
                 }

@@ -6,34 +6,6 @@ module.exports = {
     chainWebpack: config => {
         config.optimization.delete('splitChunks');
     },
-    configureWebpack: (config) => {
-        if (process.env.NODE_ENV === 'production') {
-            return {
-                plugins: [
-                    new CopyWebpackPlugin([
-                        {
-                            from: 'src/services/WebService.js',
-                            to: '../service.js',
-                        },
-                        {
-                            from: 'src/services/package.json',
-                            to: '../',
-                        },
-                        {
-                            from: 'src/services/swagger.json',
-                            to: '../',
-                        },
-                        {
-                            from: 'src/services/Dockerfile',
-                            to: '../',
-                        }
-                    ])
-                ]
-            }
-        }
-
-        return {};
-    },
     outputDir: __dirname + "/dist/public",
     // productionSourceMap: true,
     css: {

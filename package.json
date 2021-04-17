@@ -1,15 +1,15 @@
 {
   "name": "mmfm-vue-client",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "web": "node ./src/services/WebService.js -d ./dist/public",
+    "build:service": "cross-env NODE_ENV=production webpack",
     "test": "mocha ./tests/mocha.webserice.test.js"
   },
   "dependencies": {
-    "@suen/music-api": "^1.1.15",
     "axios": "^0.21.1",
     "axios-cookiejar-support": "^1.0.1",
     "body-parser": "^1.19.0",
@@ -17,6 +17,7 @@
     "dom-parser": "^0.1.6",
     "express": "^4.17.1",
     "fetch": "^1.1.0",
+    "flat-cache": "^3.0.4",
     "listen1_chrome_extension": "https://github.com/listen1/listen1_chrome_extension.git",
     "moment": "^2.24.0",
     "node-forge": "^0.10.0",
@@ -30,19 +31,26 @@
     "vuedraggable": "^2.23.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.13.15",
+    "@babel/preset-env": "^7.13.15",
     "@vue/cli-plugin-babel": "^3.11.0",
     "@vue/cli-plugin-eslint": "^3.11.0",
     "@vue/cli-service": "^3.11.0",
     "assert": "^2.0.0",
     "babel-eslint": "^10.0.3",
+    "babel-plugin-add-module-exports": "^1.0.4",
     "copy-webpack-plugin": "^5.0.4",
+    "core-js": "2",
+    "cross-env": "^7.0.3",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.2.3",
     "esm": "^3.2.25",
+    "inquirer": "^8.0.0",
     "mocha": "^7.2.0",
     "node-sass": "^4.12.0",
     "sass-loader": "^7.3.1",
     "vue-template-compiler": "^2.5.21",
-    "webpack-cli": "^3.3.9"
+    "webpack-cli": "^3.3.9",
+    "webpack-node-externals": "^2.5.2"
   }
 }
