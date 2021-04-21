@@ -30,7 +30,7 @@ exports.search = (keywork) => {
                                 name: item.title,
                                 id: item.id,
                                 link: item.source_url,
-                                vendor: row.source
+                                vendor: item.source
                             }
                         })
                     };

@@ -8,11 +8,8 @@ describe("qqAPI", function() {
         const keywords = "推开世界的门";
 
         qqApi.search(keywords)
-            .then((result,
-                   total,
-                   type) => {
-                console.dir(total);
-                console.dir(result);
+            .then((data) => {
+                console.dir(data.result);
             })
 
     });
