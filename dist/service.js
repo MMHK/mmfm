@@ -1630,7 +1630,7 @@ exports.search = (keywork) => {
                                 name: item.title,
                                 id: item.id,
                                 link: item.source_url,
-                                vendor: row.source
+                                vendor: item.source
                             }
                         })
                     };
@@ -1678,7 +1678,9 @@ exports.url = (track_id) => {
 /* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const axios = __webpack_require__(6).create({});
+const axios = __webpack_require__(6).create({
+    timeout: 10000,
+});
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
 const UUID = __webpack_require__(32);
@@ -1776,7 +1778,9 @@ module.exports = require("uuidjs");
 /* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const axios = __webpack_require__(6).create({});
+const axios = __webpack_require__(6).create({
+    timeout: 10000,
+});
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
 
@@ -1873,7 +1877,9 @@ exports.song = (result) => {
 /* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const axios = __webpack_require__(6).create({});
+const axios = __webpack_require__(6).create({
+    timeout: 10000,
+});
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
 const DOMParser = __webpack_require__(35);
@@ -1991,7 +1997,9 @@ module.exports = require("dom-parser");
 /* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const axios = __webpack_require__(6).create({});
+const axios = __webpack_require__(6).create({
+    timeout: 10000,
+});
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
 const forge = __webpack_require__(14);
