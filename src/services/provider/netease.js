@@ -1,4 +1,6 @@
-const axios = require("axios").create({});
+const axios = require("axios").create({
+    timeout: 10000,
+});
 const path = require("path");
 const fs = require("fs");
 const forge = require("node-forge");

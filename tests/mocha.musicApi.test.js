@@ -5,7 +5,7 @@ describe("musicApi", function () {
     it("search", async function () {
         this.timeout(60000);
 
-        const result = await musicApi.search("走在冷风中");
+        const result = await musicApi.search("林俊杰");
 
         console.dir(result.migu);
     });
@@ -13,7 +13,7 @@ describe("musicApi", function () {
     it("song", async function () {
         this.timeout(60000);
 
-        const result = await musicApi.song("mgtrack_69965700748");
+        const result = await musicApi.song("mgtrack_60058621104");
 
         console.dir(result);
     });
@@ -21,7 +21,7 @@ describe("musicApi", function () {
     it("url", async function () {
         this.timeout(60000);
 
-        const result = await musicApi.url("mgtrack_69965700748");
+        const result = await musicApi.url("mgtrack_60058621104");
 
         console.dir(result);
     });
