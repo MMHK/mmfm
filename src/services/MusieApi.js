@@ -2,6 +2,7 @@ const MiguService = require("./provider/migu");
 const KuwoService = require("./provider/kuwo");
 const QQService = require("./provider/qq");
 const neteaseService = require("./provider/netease");
+const kugouService = require("./provider/kugou");
 const flatCache = require('flat-cache');
 const os = require("os");
 
@@ -9,7 +10,7 @@ const cache = flatCache.load("musicCache", os.tmpdir());
 
 exports.search = (keywork) => {
     return Promise.all([QQService.search(keywork), neteaseService.search(keywork),
-        MiguService.search(keywork), KuwoService.search(keywork)])
+        MiguService.search(keywork), KuwoService.search(keywork), kugouService.search(keywork)])
         .then((dataList) => {
             const list = Array.from(dataList).reduce(function (last, row) {
                 if (row.result && row.result.length > 0 && row.result[0].source && !last[row.result[0].source]) {
@@ -68,6 +69,8 @@ exports.url = (track_id) => {
             return KuwoService.song(track);
         case "migu":
             return MiguService.song(track);
+        case "kugou":
+            return kugouService.song(track);
     }
 
     return Promise.reject("no provider found");

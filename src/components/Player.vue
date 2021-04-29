@@ -85,7 +85,7 @@
         </a>
       </div>
       <a class="fm-intro-btn" target="_blank" alt="帮助" title="帮助" href="https://github.com/MMHK/mmfm">
-        <i class="iconfont icon-Info"></i> v2.6
+        <i class="iconfont icon-Info"></i> v2.7
       </a>
     </div>
   </div>

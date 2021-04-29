@@ -100,16 +100,34 @@ module.exports = require("fs");
 /* 2 */
 /***/ (function(module, exports) {
 
-module.exports = require("bytes");
+module.exports = require("axios");
 
 /***/ }),
 /* 3 */
 /***/ (function(module, exports) {
 
-module.exports = require("debug");
+module.exports = require("axios-cookiejar-support");
 
 /***/ }),
 /* 4 */
+/***/ (function(module, exports) {
+
+module.exports = require("tough-cookie");
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports) {
+
+module.exports = require("bytes");
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+module.exports = require("debug");
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -297,28 +315,10 @@ function contentstream (req, debug, inflate) {
 
 
 /***/ }),
-/* 5 */
-/***/ (function(module, exports) {
-
-module.exports = require("type-is");
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports) {
-
-module.exports = require("axios");
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports) {
-
-module.exports = require("axios-cookiejar-support");
-
-/***/ }),
 /* 8 */
 /***/ (function(module, exports) {
 
-module.exports = require("tough-cookie");
+module.exports = require("type-is");
 
 /***/ }),
 /* 9 */
@@ -377,14 +377,14 @@ const app = express();
 const cli = __webpack_require__(19);
 const bodyParser = __webpack_require__(20);
 const musicApi = __webpack_require__(30);
-const swaggerUi = __webpack_require__(39)
+const swaggerUi = __webpack_require__(41)
 const server = __webpack_require__(15).Server(app);
-const SocketIO = __webpack_require__(41);
-const swaggerDocument = __webpack_require__(42);
+const SocketIO = __webpack_require__(43);
+const swaggerDocument = __webpack_require__(44);
 const path = __webpack_require__(0);
-const crypto = __webpack_require__(43);
+const crypto = __webpack_require__(45);
 const fs = __webpack_require__(1);
-const FetchStream = __webpack_require__(44).FetchStream;
+const FetchStream = __webpack_require__(46).FetchStream;
 
 const options = cli.parse({
     host: [ 'b', 'web server listen on address', 'ip', "0.0.0.0"], 
@@ -819,12 +819,12 @@ function loadParser (parserName) {
  * @private
  */
 
-var bytes = __webpack_require__(2)
+var bytes = __webpack_require__(5)
 var contentType = __webpack_require__(9)
 var createError = __webpack_require__(10)
-var debug = __webpack_require__(3)('body-parser:json')
-var read = __webpack_require__(4)
-var typeis = __webpack_require__(5)
+var debug = __webpack_require__(6)('body-parser:json')
+var read = __webpack_require__(7)
+var typeis = __webpack_require__(8)
 
 /**
  * Module exports.
@@ -1072,10 +1072,10 @@ module.exports = require("on-finished");
  * Module dependencies.
  */
 
-var bytes = __webpack_require__(2)
-var debug = __webpack_require__(3)('body-parser:raw')
-var read = __webpack_require__(4)
-var typeis = __webpack_require__(5)
+var bytes = __webpack_require__(5)
+var debug = __webpack_require__(6)('body-parser:raw')
+var read = __webpack_require__(7)
+var typeis = __webpack_require__(8)
 
 /**
  * Module exports.
@@ -1180,11 +1180,11 @@ function typeChecker (type) {
  * Module dependencies.
  */
 
-var bytes = __webpack_require__(2)
+var bytes = __webpack_require__(5)
 var contentType = __webpack_require__(9)
-var debug = __webpack_require__(3)('body-parser:text')
-var read = __webpack_require__(4)
-var typeis = __webpack_require__(5)
+var debug = __webpack_require__(6)('body-parser:text')
+var read = __webpack_require__(7)
+var typeis = __webpack_require__(8)
 
 /**
  * Module exports.
@@ -1310,13 +1310,13 @@ function typeChecker (type) {
  * @private
  */
 
-var bytes = __webpack_require__(2)
+var bytes = __webpack_require__(5)
 var contentType = __webpack_require__(9)
 var createError = __webpack_require__(10)
-var debug = __webpack_require__(3)('body-parser:urlencoded')
+var debug = __webpack_require__(6)('body-parser:urlencoded')
 var deprecate = __webpack_require__(12)('body-parser')
-var read = __webpack_require__(4)
-var typeis = __webpack_require__(5)
+var read = __webpack_require__(7)
+var typeis = __webpack_require__(8)
 
 /**
  * Module exports.
@@ -1602,14 +1602,15 @@ const MiguService = __webpack_require__(31);
 const KuwoService = __webpack_require__(33);
 const QQService = __webpack_require__(34);
 const neteaseService = __webpack_require__(36);
-const flatCache = __webpack_require__(37);
-const os = __webpack_require__(38);
+const kugouService = __webpack_require__(37);
+const flatCache = __webpack_require__(39);
+const os = __webpack_require__(40);
 
 const cache = flatCache.load("musicCache", os.tmpdir());
 
 exports.search = (keywork) => {
     return Promise.all([QQService.search(keywork), neteaseService.search(keywork),
-        MiguService.search(keywork), KuwoService.search(keywork)])
+        MiguService.search(keywork), KuwoService.search(keywork), kugouService.search(keywork)])
         .then((dataList) => {
             const list = Array.from(dataList).reduce(function (last, row) {
                 if (row.result && row.result.length > 0 && row.result[0].source && !last[row.result[0].source]) {
@@ -1668,6 +1669,8 @@ exports.url = (track_id) => {
             return KuwoService.song(track);
         case "migu":
             return MiguService.song(track);
+        case "kugou":
+            return kugouService.song(track);
     }
 
     return Promise.reject("no provider found");
@@ -1678,7 +1681,7 @@ exports.url = (track_id) => {
 /* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const axios = __webpack_require__(6).create({
+const axios = __webpack_require__(2).create({
     timeout: 10000,
 });
 const path = __webpack_require__(0);
@@ -1686,8 +1689,8 @@ const fs = __webpack_require__(1);
 const UUID = __webpack_require__(32);
 const forge = __webpack_require__(14);
 
-const axiosCookieJarSupport = __webpack_require__(7).default;
-const tough = __webpack_require__(8);
+const axiosCookieJarSupport = __webpack_require__(3).default;
+const tough = __webpack_require__(4);
 
 axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
@@ -1778,14 +1781,14 @@ module.exports = require("uuidjs");
 /* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const axios = __webpack_require__(6).create({
+const axios = __webpack_require__(2).create({
     timeout: 10000,
 });
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
 
-const axiosCookieJarSupport = __webpack_require__(7).default;
-const tough = __webpack_require__(8);
+const axiosCookieJarSupport = __webpack_require__(3).default;
+const tough = __webpack_require__(4);
 
 axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
@@ -1877,15 +1880,15 @@ exports.song = (result) => {
 /* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const axios = __webpack_require__(6).create({
+const axios = __webpack_require__(2).create({
     timeout: 10000,
 });
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
 const DOMParser = __webpack_require__(35);
 
-const axiosCookieJarSupport = __webpack_require__(7).default;
-const tough = __webpack_require__(8);
+const axiosCookieJarSupport = __webpack_require__(3).default;
+const tough = __webpack_require__(4);
 
 axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
@@ -1997,15 +2000,15 @@ module.exports = require("dom-parser");
 /* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const axios = __webpack_require__(6).create({
+const axios = __webpack_require__(2).create({
     timeout: 10000,
 });
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
 const forge = __webpack_require__(14);
 
-const axiosCookieJarSupport = __webpack_require__(7).default;
-const tough = __webpack_require__(8);
+const axiosCookieJarSupport = __webpack_require__(3).default;
+const tough = __webpack_require__(4);
 
 axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
@@ -2109,25 +2112,123 @@ exports.song = (result) => {
 
 /***/ }),
 /* 37 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = require("flat-cache");
+const axios = __webpack_require__(2).create({
+    timeout: 10000,
+});
+const path = __webpack_require__(0);
+const fs = __webpack_require__(1);
+const async = __webpack_require__(38);
+
+const axiosCookieJarSupport = __webpack_require__(3).default;
+const tough = __webpack_require__(4);
+
+axiosCookieJarSupport(axios);
+const cookieJar = new tough.CookieJar();
+
+axios.interceptors.request.use((config) => {
+    config.headers["User-Agent"] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36';
+    config.jar = cookieJar;
+    config.withCredentials = true;
+    config.headers["Referer"] = 'http://www.kugou.com/';
+
+
+    return config;
+});
+
+axios.interceptors.response.use((response) => {
+    // console.dir(response.data.data.lists);
+    // console.dir(response.config);
+    return response;
+}, (error) => {
+    console.error(error);
+
+    return Promise.reject(error);
+});
+
+
+function isElectron() {
+    return false;
+}
+
+function cookieGet(cookie, callback) {
+    const url = cookie.url || cookie.domain;
+    const name = cookie.name;
+    cookieJar.getCookies(url, {}, (err, cookies) => {
+        const target = Array.from(cookies).find((c) => {
+            return name && c.key == name;
+        });
+
+        callback(target);
+    });
+}
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&'); // eslint-disable-line no-useless-escape
+    const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`);
+
+    const results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+function wrapFunc() {
+    const jsFile = path.resolve("node_modules", "listen1_chrome_extension/js/provider/kugou.js");
+    const body = fs.readFileSync(jsFile);
+
+    const func = new Function("async", "axios", "getParameterByName", "isElectron", "cookieGet", `${body} return kugou`);
+
+    return func(async, axios, getParameterByName, isElectron, cookieGet);
+}
+
+const kugou = wrapFunc();
+
+exports.search = (key) => {
+    const keywords = encodeURI(encodeURI(key));
+
+    return new Promise(resolve => {
+        kugou.search(`/search?keywords=${keywords}&type=0&curpage=1`)
+            .success(resolve)
+    })
+};
+
+exports.song = (result) => {
+    return new Promise((resolve, reject) => {
+        kugou.bootstrap_track(result, resolve, reject);
+    })
+};
+
 
 /***/ }),
 /* 38 */
 /***/ (function(module, exports) {
 
-module.exports = require("os");
+module.exports = require("async");
 
 /***/ }),
 /* 39 */
+/***/ (function(module, exports) {
+
+module.exports = require("flat-cache");
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports) {
+
+module.exports = require("os");
+
+/***/ }),
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var express = __webpack_require__(11)
-var swaggerUi = __webpack_require__(40)
+var swaggerUi = __webpack_require__(42)
 var favIconHtml = '<link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />' +
   '<link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />'
 var swaggerInit = ''
@@ -2387,46 +2488,46 @@ module.exports = {
 
 
 /***/ }),
-/* 40 */
+/* 42 */
 /***/ (function(module, exports) {
 
 module.exports = require("swagger-ui-dist");
 
 /***/ }),
-/* 41 */
+/* 43 */
 /***/ (function(module, exports) {
 
 module.exports = require("socket.io");
 
 /***/ }),
-/* 42 */
+/* 44 */
 /***/ (function(module) {
 
 module.exports = JSON.parse("{\"swagger\":\"2.0\",\"info\":{\"description\":\"This music API for qq netease xiami\",\"version\":\"1.0.0\",\"title\":\"Music API for QQ NetEase Xiami\",\"license\":{\"name\":\"Apache 2.0\",\"url\":\"http://www.apache.org/licenses/LICENSE-2.0.html\"}},\"host\":\"localhost\",\"basePath\":\"/\",\"tags\":[{\"name\":\"song\",\"description\":\"song of QQ NetEase Xiami\"}],\"schemes\":[\"http\"],\"paths\":{\"/api/song/search\":{\"get\":{\"tags\":[\"song\"],\"summary\":\"Search song of all platform\",\"description\":\"\",\"produces\":[\"application/json\"],\"parameters\":[{\"name\":\"keyword\",\"in\":\"query\",\"type\":\"string\",\"description\":\"Name of song\",\"required\":true},{\"in\":\"query\",\"name\":\"offset\",\"type\":\"string\",\"description\":\"offset of page\",\"required\":false}],\"responses\":{\"200\":{\"description\":\"Success\"}},\"security\":[]}},\"/api/song/detail\":{\"get\":{\"tags\":[\"song\"],\"summary\":\"get song detail\",\"produces\":[\"application/json\"],\"parameters\":[{\"in\":\"query\",\"name\":\"vendor\",\"type\":\"string\",\"description\":\"platform\",\"required\":true},{\"in\":\"query\",\"name\":\"id\",\"type\":\"number\",\"description\":\"ID of song\",\"required\":true}],\"responses\":{\"200\":{\"description\":\"Success\"}}}},\"/api/song/url\":{\"get\":{\"tags\":[\"song\"],\"summary\":\"get song URL\",\"produces\":[\"application/json\"],\"parameters\":[{\"in\":\"query\",\"name\":\"vendor\",\"type\":\"string\",\"description\":\"platform\",\"required\":true},{\"in\":\"query\",\"name\":\"id\",\"type\":\"number\",\"description\":\"ID of song\",\"required\":true}],\"responses\":{\"200\":{\"description\":\"Success\"}}}},\"/song/save\":{\"post\":{\"tags\":[\"song\"],\"summary\":\"save play list\",\"consumes\":[\"application/x-www-form-urlencoded\"],\"produces\":[\"application/json\"],\"parameters\":[{\"in\":\"formData\",\"type\":\"string\",\"name\":\"list\",\"description\":\"playlist JSON\",\"required\":true}],\"responses\":{\"200\":{\"description\":\"Success\"}}}},\"/song/get\":{\"get\":{\"tags\":[\"song\"],\"summary\":\"load PlayList\",\"produces\":[\"application/json\"],\"responses\":{\"200\":{\"description\":\"Success\"}}}},\"/song/preload\":{\"post\":{\"tags\":[\"song\"],\"summary\":\"preload a song url, conver to local url\",\"consumes\":[\"application/x-www-form-urlencoded\"],\"produces\":[\"application/json\"],\"parameters\":[{\"in\":\"formData\",\"type\":\"string\",\"name\":\"url\",\"description\":\"audio file url\",\"required\":true}],\"responses\":{\"200\":{\"description\":\"Success\"}}}}}}");
 
 /***/ }),
-/* 43 */
+/* 45 */
 /***/ (function(module, exports) {
 
 module.exports = require("crypto");
 
 /***/ }),
-/* 44 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var http = __webpack_require__(15);
-var https = __webpack_require__(45);
+var https = __webpack_require__(47);
 var urllib = __webpack_require__(16);
-var utillib = __webpack_require__(46);
+var utillib = __webpack_require__(48);
 var zlib = __webpack_require__(13);
-var dns = __webpack_require__(47);
-var Stream = __webpack_require__(48).Readable;
-var CookieJar = __webpack_require__(49).CookieJar;
-var encodinglib = __webpack_require__(50);
-var net = __webpack_require__(51);
+var dns = __webpack_require__(49);
+var Stream = __webpack_require__(50).Readable;
+var CookieJar = __webpack_require__(51).CookieJar;
+var encodinglib = __webpack_require__(52);
+var net = __webpack_require__(53);
 
 var USE_ALLOC = typeof Buffer.alloc === 'function';
 
@@ -2918,31 +3019,31 @@ function _findHTMLCharset(htmlbuffer) {
 
 
 /***/ }),
-/* 45 */
+/* 47 */
 /***/ (function(module, exports) {
 
 module.exports = require("https");
 
 /***/ }),
-/* 46 */
+/* 48 */
 /***/ (function(module, exports) {
 
 module.exports = require("util");
 
 /***/ }),
-/* 47 */
+/* 49 */
 /***/ (function(module, exports) {
 
 module.exports = require("dns");
 
 /***/ }),
-/* 48 */
+/* 50 */
 /***/ (function(module, exports) {
 
 module.exports = require("stream");
 
 /***/ }),
-/* 49 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3142,13 +3243,13 @@ CookieJar.prototype.setCookie = function (cookie_str, url) {
 
 
 /***/ }),
-/* 50 */
+/* 52 */
 /***/ (function(module, exports) {
 
 module.exports = require("encoding");
 
 /***/ }),
-/* 51 */
+/* 53 */
 /***/ (function(module, exports) {
 
 module.exports = require("net");
