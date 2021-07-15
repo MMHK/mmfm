@@ -1609,7 +1609,7 @@ const os = __webpack_require__(40);
 const cache = flatCache.load("musicCache", os.tmpdir());
 
 exports.search = (keywork) => {
-    return Promise.all([QQService.search(keywork), neteaseService.search(keywork),
+    return Promise.all([
         MiguService.search(keywork), KuwoService.search(keywork), kugouService.search(keywork)])
         .then((dataList) => {
             const list = Array.from(dataList).reduce(function (last, row) {
