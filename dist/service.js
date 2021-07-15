@@ -1609,7 +1609,7 @@ const os = __webpack_require__(40);
 const cache = flatCache.load("musicCache", os.tmpdir());
 
 exports.search = (keywork) => {
-    return Promise.all([
+    return Promise.all([neteaseService.search(keywork),
         MiguService.search(keywork), KuwoService.search(keywork), kugouService.search(keywork)])
         .then((dataList) => {
             const list = Array.from(dataList).reduce(function (last, row) {
@@ -1902,7 +1902,7 @@ axios.interceptors.request.use((config) => {
     if (config.url.includes("qq.com")) {
         config.headers["Referer"] = 'https://i.y.qq.com/';
     }
-    //
+
     // if (config.url.includes("convert_url")) {
     //     delete config.jar;
     //     config.withCredentials = false;
@@ -1913,7 +1913,7 @@ axios.interceptors.request.use((config) => {
 });
 
 axios.interceptors.response.use((response) => {
-    // console.log(response.config);
+    console.log(response.config);
     // console.log(response.data);
     return response;
 }, (error) => {
