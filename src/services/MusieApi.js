@@ -9,7 +9,7 @@ const os = require("os");
 const cache = flatCache.load("musicCache", os.tmpdir());
 
 exports.search = (keywork) => {
-    return Promise.all([neteaseService.search(keywork),
+    return Promise.all([neteaseService.search(keywork), QQService.search(keywork),
         MiguService.search(keywork), KuwoService.search(keywork), kugouService.search(keywork)])
         .then((dataList) => {
             const list = Array.from(dataList).reduce(function (last, row) {

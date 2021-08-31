@@ -18,7 +18,8 @@ axios.interceptors.request.use((config) => {
     config.withCredentials = true;
     //
     if (config.url.includes("qq.com")) {
-        config.headers["Referer"] = 'https://i.y.qq.com/';
+        config.headers["referer"] = 'https://y.qq.com';
+        config.headers["origin"] = 'https://y.qq.com';
     }
 
     // if (config.url.includes("convert_url")) {
@@ -31,7 +32,7 @@ axios.interceptors.request.use((config) => {
 });
 
 axios.interceptors.response.use((response) => {
-    console.log(response.config);
+    // console.log(response.config);
     // console.log(response.data);
     return response;
 }, (error) => {
