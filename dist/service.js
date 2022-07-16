@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 17);
+/******/ 	return __webpack_require__(__webpack_require__.s = 18);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -145,9 +145,11 @@ module.exports = require("debug");
  */
 
 var createError = __webpack_require__(10)
-var getBody = __webpack_require__(22)
-var iconv = __webpack_require__(23)
-var onFinished = __webpack_require__(24)
+var destroy = __webpack_require__(23)
+var getBody = __webpack_require__(24)
+var iconv = __webpack_require__(25)
+var onFinished = __webpack_require__(26)
+var unpipe = __webpack_require__(27)
 var zlib = __webpack_require__(13)
 
 /**
@@ -222,9 +224,14 @@ function read (req, res, next, parse, debug, options) {
         _error = createError(400, error)
       }
 
+      // unpipe from stream and destroy
+      if (stream !== req) {
+        unpipe(req)
+        destroy(stream, true)
+      }
+
       // read off entire request
-      stream.resume()
-      onFinished(req, function onfinished () {
+      dump(req, function onfinished () {
         next(createError(400, _error))
       })
       return
@@ -313,6 +320,23 @@ function contentstream (req, debug, inflate) {
   return stream
 }
 
+/**
+ * Dump the contents of a request.
+ *
+ * @param {object} req
+ * @param {function} callback
+ * @api private
+ */
+
+function dump (req, callback) {
+  if (onFinished.isFinished(req)) {
+    callback(null)
+  } else {
+    onFinished(req, callback)
+    req.resume()
+  }
+}
+
 
 /***/ }),
 /* 8 */
@@ -360,31 +384,37 @@ module.exports = require("node-forge");
 /* 15 */
 /***/ (function(module, exports) {
 
-module.exports = require("http");
+module.exports = require("dom-parser");
 
 /***/ }),
 /* 16 */
 /***/ (function(module, exports) {
 
-module.exports = require("url");
+module.exports = require("http");
 
 /***/ }),
 /* 17 */
+/***/ (function(module, exports) {
+
+module.exports = require("url");
+
+/***/ }),
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {const express = __webpack_require__(11);
 const app = express();
-const cli = __webpack_require__(19);
-const bodyParser = __webpack_require__(20);
-const musicApi = __webpack_require__(30);
-const swaggerUi = __webpack_require__(41)
-const server = __webpack_require__(15).Server(app);
-const SocketIO = __webpack_require__(43);
-const swaggerDocument = __webpack_require__(44);
+const cli = __webpack_require__(20);
+const bodyParser = __webpack_require__(21);
+const musicApi = __webpack_require__(33);
+const swaggerUi = __webpack_require__(45)
+const server = __webpack_require__(16).Server(app);
+const SocketIO = __webpack_require__(47);
+const swaggerDocument = __webpack_require__(48);
 const path = __webpack_require__(0);
-const crypto = __webpack_require__(45);
+const crypto = __webpack_require__(49);
 const fs = __webpack_require__(1);
-const FetchStream = __webpack_require__(46).FetchStream;
+const FetchStream = __webpack_require__(50).FetchStream;
 
 const options = cli.parse({
     host: [ 'b', 'web server listen on address', 'ip', "0.0.0.0"], 
@@ -496,16 +526,20 @@ function downloadFile(url, saveAs) {
     const fileStream = fs.createWriteStream(saveAs);
 
     return new Promise((resolve, reject) => {
+        let headers = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8,ro;q=0.7,ru;q=0.6,la;q=0.5,pt;q=0.4,de;q=0.3',
+            'Cache-Control': 'max-age=0',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'
+        };
+        if (url.includes("bilivideo.com")) {
+            headers["Referer"] = "https://www.bilibili.com/";
+        }
         const req = new FetchStream(url, {
-            headers: {
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8,ro;q=0.7,ru;q=0.6,la;q=0.5,pt;q=0.4,de;q=0.3',
-                'Cache-Control': 'max-age=0',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1',
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'
-            }
+            headers,
         });
 
         req.on("meta", (meta) => {
@@ -600,10 +634,10 @@ if ( true && __webpack_require__.c[__webpack_require__.s] === module) {
 }
 
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(18)(module)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(19)(module)))
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -631,13 +665,13 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports) {
 
 module.exports = require("cli");
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -782,16 +816,16 @@ function loadParser (parserName) {
   // this uses a switch for static require analysis
   switch (parserName) {
     case 'json':
-      parser = __webpack_require__(21)
+      parser = __webpack_require__(22)
       break
     case 'raw':
-      parser = __webpack_require__(25)
+      parser = __webpack_require__(28)
       break
     case 'text':
-      parser = __webpack_require__(26)
+      parser = __webpack_require__(29)
       break
     case 'urlencoded':
-      parser = __webpack_require__(27)
+      parser = __webpack_require__(30)
       break
   }
 
@@ -801,7 +835,7 @@ function loadParser (parserName) {
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -844,7 +878,7 @@ module.exports = json
  *            %x0D )              ; Carriage return
  */
 
-var FIRST_CHAR_REGEXP = /^[\x20\x09\x0a\x0d]*(.)/ // eslint-disable-line no-control-regex
+var FIRST_CHAR_REGEXP = /^[\x20\x09\x0a\x0d]*([^\x20\x09\x0a\x0d])/ // eslint-disable-line no-control-regex
 
 /**
  * Create a middleware to parse JSON bodies.
@@ -929,7 +963,7 @@ function json (options) {
 
     // assert charset per RFC 7159 sec 8.1
     var charset = getCharset(req) || 'utf-8'
-    if (charset.substr(0, 4) !== 'utf-') {
+    if (charset.slice(0, 4) !== 'utf-') {
       debug('invalid charset')
       next(createError(415, 'unsupported charset "' + charset.toUpperCase() + '"', {
         charset: charset,
@@ -959,7 +993,9 @@ function json (options) {
 
 function createStrictSyntaxError (str, char) {
   var index = str.indexOf(char)
-  var partial = str.substring(0, index) + '#'
+  var partial = index !== -1
+    ? str.substring(0, index) + '#'
+    : ''
 
   try {
     JSON.parse(partial); /* istanbul ignore next */ throw new SyntaxError('strict violation')
@@ -980,7 +1016,11 @@ function createStrictSyntaxError (str, char) {
  */
 
 function firstchar (str) {
-  return FIRST_CHAR_REGEXP.exec(str)[1]
+  var match = FIRST_CHAR_REGEXP.exec(str)
+
+  return match
+    ? match[1]
+    : undefined
 }
 
 /**
@@ -1038,25 +1078,37 @@ function typeChecker (type) {
 
 
 /***/ }),
-/* 22 */
-/***/ (function(module, exports) {
-
-module.exports = require("raw-body");
-
-/***/ }),
 /* 23 */
 /***/ (function(module, exports) {
 
-module.exports = require("iconv-lite");
+module.exports = require("destroy");
 
 /***/ }),
 /* 24 */
 /***/ (function(module, exports) {
 
-module.exports = require("on-finished");
+module.exports = require("raw-body");
 
 /***/ }),
 /* 25 */
+/***/ (function(module, exports) {
+
+module.exports = require("iconv-lite");
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports) {
+
+module.exports = require("on-finished");
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports) {
+
+module.exports = require("unpipe");
+
+/***/ }),
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1164,7 +1216,7 @@ function typeChecker (type) {
 
 
 /***/ }),
-/* 26 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1292,7 +1344,7 @@ function typeChecker (type) {
 
 
 /***/ }),
-/* 27 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1520,10 +1572,10 @@ function parser (name) {
   // this uses a switch for static require analysis
   switch (name) {
     case 'qs':
-      mod = __webpack_require__(28)
+      mod = __webpack_require__(31)
       break
     case 'querystring':
-      mod = __webpack_require__(29)
+      mod = __webpack_require__(32)
       break
   }
 
@@ -1583,34 +1635,40 @@ function typeChecker (type) {
 
 
 /***/ }),
-/* 28 */
+/* 31 */
 /***/ (function(module, exports) {
 
 module.exports = require("qs");
 
 /***/ }),
-/* 29 */
+/* 32 */
 /***/ (function(module, exports) {
 
 module.exports = require("querystring");
 
 /***/ }),
-/* 30 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const MiguService = __webpack_require__(31);
-const KuwoService = __webpack_require__(33);
-const QQService = __webpack_require__(34);
-const neteaseService = __webpack_require__(36);
-const kugouService = __webpack_require__(37);
-const flatCache = __webpack_require__(39);
-const os = __webpack_require__(40);
+const MiguService = __webpack_require__(34);
+const KuwoService = __webpack_require__(36);
+const QQService = __webpack_require__(37);
+const neteaseService = __webpack_require__(38);
+const kugouService = __webpack_require__(40);
+const bilibiliService = __webpack_require__(42);
+const flatCache = __webpack_require__(43);
+const os = __webpack_require__(44);
 
 const cache = flatCache.load("musicCache", os.tmpdir());
 
 exports.search = (keywork) => {
-    return Promise.all([neteaseService.search(keywork),
-        MiguService.search(keywork), KuwoService.search(keywork), kugouService.search(keywork)])
+    return Promise.all([neteaseService.search(keywork)
+        , QQService.search(keywork)
+        , MiguService.search(keywork)
+        , KuwoService.search(keywork)
+        , kugouService.search(keywork)
+        , bilibiliService.search(keywork)
+    ])
         .then((dataList) => {
             const list = Array.from(dataList).reduce(function (last, row) {
                 if (row.result && row.result.length > 0 && row.result[0].source && !last[row.result[0].source]) {
@@ -1671,6 +1729,8 @@ exports.url = (track_id) => {
             return MiguService.song(track);
         case "kugou":
             return kugouService.song(track);
+        case "bilibili":
+            return bilibiliService.song(track);
     }
 
     return Promise.reject("no provider found");
@@ -1678,7 +1738,7 @@ exports.url = (track_id) => {
 
 
 /***/ }),
-/* 31 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const axios = __webpack_require__(2).create({
@@ -1686,7 +1746,7 @@ const axios = __webpack_require__(2).create({
 });
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
-const UUID = __webpack_require__(32);
+const UUID = __webpack_require__(35);
 const forge = __webpack_require__(14);
 
 const axiosCookieJarSupport = __webpack_require__(3).default;
@@ -1772,13 +1832,13 @@ exports.song = (result) => {
 
 
 /***/ }),
-/* 32 */
+/* 35 */
 /***/ (function(module, exports) {
 
 module.exports = require("uuidjs");
 
 /***/ }),
-/* 33 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const axios = __webpack_require__(2).create({
@@ -1877,7 +1937,7 @@ exports.song = (result) => {
 
 
 /***/ }),
-/* 34 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const axios = __webpack_require__(2).create({
@@ -1885,7 +1945,7 @@ const axios = __webpack_require__(2).create({
 });
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
-const DOMParser = __webpack_require__(35);
+const DOMParser = __webpack_require__(15);
 
 const axiosCookieJarSupport = __webpack_require__(3).default;
 const tough = __webpack_require__(4);
@@ -1894,20 +1954,24 @@ axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
 
 axios.interceptors.request.use((config) => {
-    config.headers["User-Agent"] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36';
+    config.headers["User-Agent"] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
     // config.headers["Host"] = 'www.qq.cn';
     config.jar = cookieJar;
     config.withCredentials = true;
-    //
-    if (config.url.includes("qq.com")) {
-        config.headers["Referer"] = 'https://i.y.qq.com/';
-    }
 
-    // if (config.url.includes("convert_url")) {
-    //     delete config.jar;
-    //     config.withCredentials = false;
-    //     delete config.headers["Host"];
-    // }
+    if (config.url.includes('c.y.qq.com/')) {
+        config.headers["Referer"] = 'https://y.qq.com/';
+        config.headers["Origin"] = 'https://y.qq.com';
+    }
+    if (
+        config.url.includes('i.y.qq.com/') ||
+        config.url.includes('qqmusic.qq.com/') ||
+        config.url.includes('music.qq.com/') ||
+        config.url.includes('imgcache.qq.com/')
+    ) {
+        config.headers["Referer"] = 'https://y.qq.com/';
+        config.headers["Origin"] = 'https://y.qq.com/';
+    }
 
     return config;
 });
@@ -1915,11 +1979,21 @@ axios.interceptors.request.use((config) => {
 axios.interceptors.response.use((response) => {
     console.log(response.config);
     // console.log(response.data);
+
     return response;
 }, (error) => {
-    console.error(error);
+    // console.log(error);
+    // console.log(error.response.data);
 
-    return Promise.reject(error);
+    return Promise.resolve({
+        data: {
+            data: {
+                song: {
+                    list: [],
+                }
+            }
+        }
+    });
 });
 
 
@@ -1933,7 +2007,7 @@ function cookieGet(cookie, callback) {
     cookieJar.getCookies(url, {}, (err, cookies) => {
         const target = Array.from(cookies).find((c) => {
             return name && c.key == name;
-        });
+        }) || null;
 
         callback(target);
     });
@@ -1976,11 +2050,15 @@ const qq = wrapFunc();
 
 exports.search = (key) => {
     const keywords = encodeURI(encodeURI(key));
-
     return new Promise(resolve => {
-        qq.search(`/search?keywords=${keywords}&type=0&curpage=1`)
-            .success(resolve)
+        return qq.get_user().success(resolve);
+    }).then(() => {
+        return new Promise(resolve => {
+            qq.search(`/search?keywords=${keywords}&type=0&curpage=1`)
+                .success(resolve)
+        })
     })
+
 };
 
 exports.song = (result) => {
@@ -1991,13 +2069,7 @@ exports.song = (result) => {
 
 
 /***/ }),
-/* 35 */
-/***/ (function(module, exports) {
-
-module.exports = require("dom-parser");
-
-/***/ }),
-/* 36 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const axios = __webpack_require__(2).create({
@@ -2006,6 +2078,7 @@ const axios = __webpack_require__(2).create({
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
 const forge = __webpack_require__(14);
+const btoa = __webpack_require__(39);
 
 const axiosCookieJarSupport = __webpack_require__(3).default;
 const tough = __webpack_require__(4);
@@ -2014,22 +2087,29 @@ axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
 
 axios.interceptors.request.use((config) => {
-    config.headers["User-Agent"] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36';
-    // config.headers["Host"] = 'www.netease.cn';
+    config.headers["User-Agent"] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
     config.jar = cookieJar;
     config.withCredentials = true;
-    //
-    // if (config.url.includes("netease.com")) {
-    //     config.headers["Referer"] = 'https://y.netease.com/';
-    // }
-    //
-    // if (config.url.includes("convert_url")) {
-    //     delete config.jar;
-    //     config.withCredentials = false;
-    //     delete config.headers["Host"];
-    // }
+
+    if (config.url.includes('://music.163.com/')) {
+        config.headers["Referer"] = 'https://music.163.com/';
+        config.headers["Origin"] = 'https://music.163.com';
+    }
+    if (config.url.includes('://interface3.music.163.com/')) {
+        config.headers["Referer"] = 'https://music.163.com/';
+        config.headers["Origin"] = 'https://music.163.com';
+    }
+    if (config.url.includes('://gist.githubusercontent.com/')) {
+        config.headers["Referer"] = 'https://gist.githubusercontent.com/';
+        config.headers["Origin"] = 'https://gist.githubusercontent.com';
+    }
+
+    // console.log(config);
 
     return config;
+}, (error) => {
+    // console.log(error);
+    Promise.reject(error);
 });
 
 axios.interceptors.response.use((response) => {
@@ -2037,7 +2117,7 @@ axios.interceptors.response.use((response) => {
     // console.log(response.data);
     return response;
 }, (error) => {
-    console.error(error);
+    // console.error(error);
 
     return Promise.reject(error);
 });
@@ -2087,31 +2167,63 @@ function wrapFunc() {
     let body = fs.readFileSync(jsFile);
 
     const func = new Function("axios", "getParameterByName",
-        "isElectron", "cookieGet", "forge", "cookieSet",`${body} return netease`);
+        "isElectron", "cookieGet", "forge", "btoa", "cookieSet",`${body} return netease`);
 
-    return func(axios, getParameterByName, isElectron, cookieGet, forge, cookieSet, forge);
+    return func(axios, getParameterByName, isElectron, cookieGet, forge, btoa, cookieSet);
 }
+
 
 const netease = wrapFunc();
 
-exports.search = (key) => {
-    const keywords = encodeURI(key);
-
-    return new Promise(resolve => {
-        netease.search(`/search?keywords=${keywords}&type=0&curpage=1`)
-            .success(resolve)
-    })
-};
-
-exports.song = (result) => {
+const songDetail =  (result) => {
     return new Promise((resolve, reject) => {
         netease.bootstrap_track(result, resolve, reject);
     })
 };
 
+exports.search = (key) => {
+    const keywords = encodeURI(key);
+
+    return new Promise(resolve => {
+       netease.get_user().success(resolve);
+    }).then(() => {
+        return new Promise(resolve => {
+            netease.search(`/search?keywords=${keywords}&type=0&curpage=1`)
+                .success(resolve)
+        })
+    })
+        .then((data) => {
+            const list = data.result || [];
+            return Promise.all(list.map((track) => {
+                return songDetail(track).then((data) => {
+                    return {
+                        ...track,
+                        ...data,
+                    }
+                }, () => {
+                    return track;
+                });
+            }))
+        })
+        .then((data) => {
+            return {
+                result: data,
+                total: data.length || 0,
+            }
+        })
+};
+
+exports.song = songDetail;
+
 
 /***/ }),
-/* 37 */
+/* 39 */
+/***/ (function(module, exports) {
+
+module.exports = require("btoa");
+
+/***/ }),
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const axios = __webpack_require__(2).create({
@@ -2119,7 +2231,7 @@ const axios = __webpack_require__(2).create({
 });
 const path = __webpack_require__(0);
 const fs = __webpack_require__(1);
-const async = __webpack_require__(38);
+const async = __webpack_require__(41);
 
 const axiosCookieJarSupport = __webpack_require__(3).default;
 const tough = __webpack_require__(4);
@@ -2203,35 +2315,156 @@ exports.song = (result) => {
 
 
 /***/ }),
-/* 38 */
+/* 41 */
 /***/ (function(module, exports) {
 
 module.exports = require("async");
 
 /***/ }),
-/* 39 */
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const axios = __webpack_require__(2).create({
+    timeout: 10000,
+});
+const path = __webpack_require__(0);
+const fs = __webpack_require__(1);
+const DOMParser = __webpack_require__(15);
+
+const axiosCookieJarSupport = __webpack_require__(3).default;
+const tough = __webpack_require__(4);
+
+axiosCookieJarSupport(axios);
+const cookieJar = new tough.CookieJar();
+
+axios.interceptors.request.use((config) => {
+    config.headers["User-Agent"] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
+    // config.headers["Host"] = 'www.qq.cn';
+    config.jar = cookieJar;
+    config.withCredentials = true;
+
+    if (
+        config.url.includes('.bilibili.com/') ||
+        config.url.includes('.bilivideo.com/')
+    ) {
+        config.headers["Referer"] = 'https://www.bilibili.com/';
+    }
+
+    return config;
+});
+
+axios.interceptors.response.use((response) => {
+    // console.log(response.config);
+    // console.log(response.data);
+
+    return response;
+}, (error) => {
+    // console.log(error);
+    // console.log(error.response.data);
+
+    return Promise.reject(error);
+});
+
+
+function isElectron() {
+    return false;
+}
+
+function cookieGet(cookie, callback) {
+    const url = cookie.url || cookie.domain;
+    const name = cookie.name;
+    cookieJar.getCookies(url, {}, (err, cookies) => {
+        const target = Array.from(cookies).find((c) => {
+            return name && c.key == name;
+        }) || null;
+
+        callback(target);
+    });
+}
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&'); // eslint-disable-line no-useless-escape
+    const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`);
+
+    const results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+function wrapFunc() {
+    const jsFile = path.resolve("node_modules", "listen1_chrome_extension/js/provider/bilibili.js");
+    let body = fs.readFileSync(jsFile);
+
+    body = (body+'').replace(/htmlDecode\(value\) {([^}]+)}/im, `
+    htmlDecode (value) { 
+        const parser = new DOMParser();
+        const dom = parser.parseFromString(value);
+        const elements = dom.getElementsByTagName("body");
+        if (elements.length > 0) {
+            return elements[0].textContent;
+        }
+        
+        return value;
+    }`);
+
+    const func = new Function("axios", "getParameterByName",
+        "isElectron", "cookieGet", "DOMParser", `${body} return bilibili`);
+
+    return func(axios, getParameterByName, isElectron, cookieGet, DOMParser);
+}
+
+const bilibili = wrapFunc();
+
+exports.search = (key) => {
+    const keywords = encodeURI(key);
+    return new Promise(resolve => {
+        return bilibili.get_user().success(resolve);
+    }).then(() => {
+        return new Promise(resolve => {
+            bilibili.search(`/search?keywords=${keywords}&type=0&curpage=1`)
+                .success(resolve)
+        })
+    })
+
+};
+
+exports.song = (result) => {
+    return new Promise((resolve, reject) => {
+        bilibili.bootstrap_track(result, resolve, reject);
+    })
+};
+
+
+/***/ }),
+/* 43 */
 /***/ (function(module, exports) {
 
 module.exports = require("flat-cache");
 
 /***/ }),
-/* 40 */
+/* 44 */
 /***/ (function(module, exports) {
 
 module.exports = require("os");
 
 /***/ }),
-/* 41 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var express = __webpack_require__(11)
-var swaggerUi = __webpack_require__(42)
+var swaggerUi = __webpack_require__(46)
 var favIconHtml = '<link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />' +
   '<link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />'
 var swaggerInit = ''
+
+function trimQuery(q) {
+  return q && q.split('?')[0]
+}
 
 var htmlTplString = `
 <!-- HTML for static distribution bundle build -->
@@ -2242,7 +2475,6 @@ var htmlTplString = `
   <title><% title %></title>
   <link rel="stylesheet" type="text/css" href="./swagger-ui.css" >
   <% favIconString %>
-  <% customJs %>
   <style>
     html
     {
@@ -2305,6 +2537,8 @@ var htmlTplString = `
 <script src="./swagger-ui-bundle.js"> </script>
 <script src="./swagger-ui-standalone-preset.js"> </script>
 <script src="./swagger-ui-init.js"> </script>
+<% customJs %>
+<% customJsStr %>
 <% customCssUrl %>
 <style>
   <% customCss %>
@@ -2363,12 +2597,14 @@ window.onload = function() {
 var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon, swaggerUrl, customSiteTitle, _htmlTplString, _jsTplString) {
   var isExplorer
   var customJs
+  var customJsStr
   var swaggerUrls
   var customCssUrl
   if (opts && typeof opts === 'object') {
     options = opts.swaggerOptions
     customCss = opts.customCss
     customJs = opts.customJs
+    customJsStr = opts.customJsStr
     customfavIcon = opts.customfavIcon
     swaggerUrl = opts.swaggerUrl
     swaggerUrls = opts.swaggerUrls
@@ -2390,7 +2626,8 @@ var generateHTML = function (swaggerDoc, opts, options, customCss, customfavIcon
   var favIconString = customfavIcon ? '<link rel="icon" href="' + customfavIcon + '" />' : favIconHtml
   var htmlWithCustomCss = _htmlTplString.toString().replace('<% customCss %>', customCss)
   var htmlWithFavIcon = htmlWithCustomCss.replace('<% favIconString %>', favIconString)
-  var htmlWithCustomJs = htmlWithFavIcon.replace('<% customJs %>', customJs ? `<script src="${customJs}"></script>` : '')
+  var htmlWithCustomJsUrl = htmlWithFavIcon.replace('<% customJs %>', customJs ? `<script src="${customJs}"></script>` : '')
+  var htmlWithCustomJs = htmlWithCustomJsUrl.replace('<% customJsStr %>', customJsStr ? `<script>${customJsStr}</script>` : '')
   var htmlWithCustomCssUrl = htmlWithCustomJs.replace('<% customCssUrl %>', customCssUrl ? `<link href="${customCssUrl}" rel="stylesheet">` : '')
 
   var initOptions = {
@@ -2417,9 +2654,9 @@ var setup = function (swaggerDoc, opts, options, customCss, customfavIcon, swagg
 }
 
 function swaggerInitFn(req, res, next) {
-  if (req.url === '/package.json') {
+  if (trimQuery(req.url).endsWith('/package.json')) {
     res.sendStatus(404)
-  } else if (req.url === '/swagger-ui-init.js') {
+  } else if (trimQuery(req.url).endsWith('/swagger-ui-init.js')) {
     res.set('Content-Type', 'application/javascript')
     res.send(swaggerInit)
   } else {
@@ -2430,9 +2667,12 @@ function swaggerInitFn(req, res, next) {
 var swaggerInitFunction = function (swaggerDoc, opts) {
   var swaggerInitFile = jsTplString.toString().replace('<% swaggerOptions %>', stringify(opts))
   return function (req, res, next) {
-    if (req.url === '/package.json') {
+    if (trimQuery(req.url).endsWith('/package.json')) {
       res.sendStatus(404)
-    } else if (req.url === '/swagger-ui-init.js') {
+    } else if (trimQuery(req.url).endsWith('/swagger-ui-init.js')) {
+      if (req.swaggerDoc) {
+        swaggerInitFile = jsTplString.toString().replace('<% swaggerOptions %>', stringify(opts))
+      }
       res.set('Content-Type', 'application/javascript')
       res.send(swaggerInitFile)
     } else {
@@ -2488,46 +2728,46 @@ module.exports = {
 
 
 /***/ }),
-/* 42 */
+/* 46 */
 /***/ (function(module, exports) {
 
 module.exports = require("swagger-ui-dist");
 
 /***/ }),
-/* 43 */
+/* 47 */
 /***/ (function(module, exports) {
 
 module.exports = require("socket.io");
 
 /***/ }),
-/* 44 */
+/* 48 */
 /***/ (function(module) {
 
 module.exports = JSON.parse("{\"swagger\":\"2.0\",\"info\":{\"description\":\"This music API for qq netease xiami\",\"version\":\"1.0.0\",\"title\":\"Music API for QQ NetEase Xiami\",\"license\":{\"name\":\"Apache 2.0\",\"url\":\"http://www.apache.org/licenses/LICENSE-2.0.html\"}},\"host\":\"localhost\",\"basePath\":\"/\",\"tags\":[{\"name\":\"song\",\"description\":\"song of QQ NetEase Xiami\"}],\"schemes\":[\"http\"],\"paths\":{\"/api/song/search\":{\"get\":{\"tags\":[\"song\"],\"summary\":\"Search song of all platform\",\"description\":\"\",\"produces\":[\"application/json\"],\"parameters\":[{\"name\":\"keyword\",\"in\":\"query\",\"type\":\"string\",\"description\":\"Name of song\",\"required\":true},{\"in\":\"query\",\"name\":\"offset\",\"type\":\"string\",\"description\":\"offset of page\",\"required\":false}],\"responses\":{\"200\":{\"description\":\"Success\"}},\"security\":[]}},\"/api/song/detail\":{\"get\":{\"tags\":[\"song\"],\"summary\":\"get song detail\",\"produces\":[\"application/json\"],\"parameters\":[{\"in\":\"query\",\"name\":\"vendor\",\"type\":\"string\",\"description\":\"platform\",\"required\":true},{\"in\":\"query\",\"name\":\"id\",\"type\":\"number\",\"description\":\"ID of song\",\"required\":true}],\"responses\":{\"200\":{\"description\":\"Success\"}}}},\"/api/song/url\":{\"get\":{\"tags\":[\"song\"],\"summary\":\"get song URL\",\"produces\":[\"application/json\"],\"parameters\":[{\"in\":\"query\",\"name\":\"vendor\",\"type\":\"string\",\"description\":\"platform\",\"required\":true},{\"in\":\"query\",\"name\":\"id\",\"type\":\"number\",\"description\":\"ID of song\",\"required\":true}],\"responses\":{\"200\":{\"description\":\"Success\"}}}},\"/song/save\":{\"post\":{\"tags\":[\"song\"],\"summary\":\"save play list\",\"consumes\":[\"application/x-www-form-urlencoded\"],\"produces\":[\"application/json\"],\"parameters\":[{\"in\":\"formData\",\"type\":\"string\",\"name\":\"list\",\"description\":\"playlist JSON\",\"required\":true}],\"responses\":{\"200\":{\"description\":\"Success\"}}}},\"/song/get\":{\"get\":{\"tags\":[\"song\"],\"summary\":\"load PlayList\",\"produces\":[\"application/json\"],\"responses\":{\"200\":{\"description\":\"Success\"}}}},\"/song/preload\":{\"post\":{\"tags\":[\"song\"],\"summary\":\"preload a song url, conver to local url\",\"consumes\":[\"application/x-www-form-urlencoded\"],\"produces\":[\"application/json\"],\"parameters\":[{\"in\":\"formData\",\"type\":\"string\",\"name\":\"url\",\"description\":\"audio file url\",\"required\":true}],\"responses\":{\"200\":{\"description\":\"Success\"}}}}}}");
 
 /***/ }),
-/* 45 */
+/* 49 */
 /***/ (function(module, exports) {
 
 module.exports = require("crypto");
 
 /***/ }),
-/* 46 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var http = __webpack_require__(15);
-var https = __webpack_require__(47);
-var urllib = __webpack_require__(16);
-var utillib = __webpack_require__(48);
+var http = __webpack_require__(16);
+var https = __webpack_require__(51);
+var urllib = __webpack_require__(17);
+var utillib = __webpack_require__(52);
 var zlib = __webpack_require__(13);
-var dns = __webpack_require__(49);
-var Stream = __webpack_require__(50).Readable;
-var CookieJar = __webpack_require__(51).CookieJar;
-var encodinglib = __webpack_require__(52);
-var net = __webpack_require__(53);
+var dns = __webpack_require__(53);
+var Stream = __webpack_require__(54).Readable;
+var CookieJar = __webpack_require__(55).CookieJar;
+var encodinglib = __webpack_require__(56);
+var net = __webpack_require__(57);
 
 var USE_ALLOC = typeof Buffer.alloc === 'function';
 
@@ -3019,37 +3259,37 @@ function _findHTMLCharset(htmlbuffer) {
 
 
 /***/ }),
-/* 47 */
+/* 51 */
 /***/ (function(module, exports) {
 
 module.exports = require("https");
 
 /***/ }),
-/* 48 */
+/* 52 */
 /***/ (function(module, exports) {
 
 module.exports = require("util");
 
 /***/ }),
-/* 49 */
+/* 53 */
 /***/ (function(module, exports) {
 
 module.exports = require("dns");
 
 /***/ }),
-/* 50 */
+/* 54 */
 /***/ (function(module, exports) {
 
 module.exports = require("stream");
 
 /***/ }),
-/* 51 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var urllib = __webpack_require__(16);
+var urllib = __webpack_require__(17);
 
 module.exports.CookieJar = CookieJar;
 
@@ -3243,13 +3483,13 @@ CookieJar.prototype.setCookie = function (cookie_str, url) {
 
 
 /***/ }),
-/* 52 */
+/* 56 */
 /***/ (function(module, exports) {
 
 module.exports = require("encoding");
 
 /***/ }),
-/* 53 */
+/* 57 */
 /***/ (function(module, exports) {
 
 module.exports = require("net");

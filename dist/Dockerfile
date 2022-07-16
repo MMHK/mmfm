@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:13-alpine
 
 ENV HOST=0.0.0.0 ROOT=/app/public PORT=8011
 
