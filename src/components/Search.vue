@@ -13,8 +13,8 @@
         <table class="table">
           <tr class="song-list" :key="item.id" v-for="item in songList">
             <td class="vendor" width="50"><img width="50%" :src="'image/' + item.vendor + '.png'" /></td>
-            <td class="title"><img :src="item.cover" height="50" />
-            <strong>{{item.name}}</strong>
+            <td class="title"><img onerror="this.src='image/default-cover.png';" :src="item.cover" height="50" />
+            <strong v-html="item.name"></strong>
             <br><span>{{item.author}}</span></td>
             <td width="40"><a @click="add(item.vendor, item.id)" class="btn"><i class="iconfont icon-xinzeng"></i></a></td>
           </tr>
@@ -103,7 +103,7 @@ export default {
         .finally(() => {
           this.loadingFlag = false;
         });
-    }
+    },
   }
 };
 </script>

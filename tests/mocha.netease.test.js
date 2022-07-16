@@ -3,16 +3,13 @@ const neteaseApi = require("../src/services/provider/netease");
 describe("neteaseApi", function() {
 
     it("search", function () {
-        this.timeout(600000);
+        this.timeout(11600000);
 
-        const keywords = "推开世界的门";
+        const keywords = "最伟大的作品";
 
-        neteaseApi.search(keywords)
-            .then((result,
-                   total,
-                   type) => {
-                console.dir(total);
-                console.dir(result);
+        return neteaseApi.search(keywords)
+            .then((data) => {
+                console.log(data);
             })
 
     });
@@ -21,19 +18,19 @@ describe("neteaseApi", function() {
         this.timeout(600000);
 
         const track = {
-            id: 'netrack_1397315005',
+            id: 'netrack_441120217',
             title: '推开世界的门',
-            artist: '泡面',
-            artist_id: 'neartist_33297461',
-            album: '推开世界的门',
-            album_id: 'nealbum_82385223',
+            artist: '杨乃文',
+            artist_id: 'neartist_10198',
+            album: '离心力',
+            album_id: 'nealbum_34984449',
             source: 'netease',
-            source_url: 'https://music.163.com/#/song?id=1397315005',
-            img_url: 'https://p1.music.126.net/OZUDTDVtwuCAm6nt4VdDTA==/109951164430926153.jpg',
-            url: undefined
+            source_url: 'https://music.163.com/#/song?id=441120217',
+            img_url: 'https://p1.music.126.net/4ESdAPfVH-tAMl-pRYNE3A==/3399689972238493.jpg',
+            url: ''
         };
 
-        neteaseApi.song(track)
+        return neteaseApi.song(track)
             .then((data) => {
                 console.dir(data)
             })

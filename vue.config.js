@@ -17,6 +17,7 @@ module.exports = {
                 sourceMap: process.env.NODE_ENV === 'production' ? false : true
             },
             sass: {
+                implementation: require('sass'),
                 sourceMap: process.env.NODE_ENV === 'production' ? false : true
             }
         }

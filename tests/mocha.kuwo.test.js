@@ -7,7 +7,7 @@ describe("kuwoAPI", function() {
 
         const keywords = "推开世界的门";
 
-        kuwoApi.search(keywords)
+        return kuwoApi.search(keywords)
             .then((result,
                    total,
                    type) => {

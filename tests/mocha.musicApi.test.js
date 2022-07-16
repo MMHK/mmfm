@@ -5,9 +5,9 @@ describe("musicApi", function () {
     it("search", async function () {
         this.timeout(60000);
 
-        const result = await musicApi.search("林俊杰");
+        const result = await musicApi.search("最伟大的作品");
 
-        console.dir(result.migu);
+        console.dir(result);
     });
 
     it("song", async function () {

@@ -60,7 +60,8 @@
                 :href="item.src"
                 target="_blank"
                 :title="item.name"
-              >{{ item.name }}</a>
+                v-html="item.name"
+              ></a>
             </div>
             <div class="item-contrl" :data-id="index">
               <a

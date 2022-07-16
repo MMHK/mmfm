@@ -17,25 +17,18 @@ axios.interceptors.request.use((config) => {
     config.jar = cookieJar;
     config.withCredentials = true;
 
-    if (config.url.includes('c.y.qq.com/')) {
-        config.headers["Referer"] = 'https://y.qq.com/';
-        config.headers["Origin"] = 'https://y.qq.com';
-    }
     if (
-        config.url.includes('i.y.qq.com/') ||
-        config.url.includes('qqmusic.qq.com/') ||
-        config.url.includes('music.qq.com/') ||
-        config.url.includes('imgcache.qq.com/')
+        config.url.includes('.bilibili.com/') ||
+        config.url.includes('.bilivideo.com/')
     ) {
-        config.headers["Referer"] = 'https://y.qq.com/';
-        config.headers["Origin"] = 'https://y.qq.com/';
+        config.headers["Referer"] = 'https://www.bilibili.com/';
     }
 
     return config;
 });
 
 axios.interceptors.response.use((response) => {
-    console.log(response.config);
+    // console.log(response.config);
     // console.log(response.data);
 
     return response;
@@ -43,15 +36,7 @@ axios.interceptors.response.use((response) => {
     // console.log(error);
     // console.log(error.response.data);
 
-    return Promise.resolve({
-        data: {
-            data: {
-                song: {
-                    list: [],
-                }
-            }
-        }
-    });
+    return Promise.reject(error);
 });
 
 
@@ -83,7 +68,7 @@ function getParameterByName(name, url) {
 }
 
 function wrapFunc() {
-    const jsFile = path.resolve("node_modules", "listen1_chrome_extension/js/provider/qq.js");
+    const jsFile = path.resolve("node_modules", "listen1_chrome_extension/js/provider/bilibili.js");
     let body = fs.readFileSync(jsFile);
 
     body = (body+'').replace(/htmlDecode\(value\) {([^}]+)}/im, `
@@ -99,20 +84,20 @@ function wrapFunc() {
     }`);
 
     const func = new Function("axios", "getParameterByName",
-        "isElectron", "cookieGet", "DOMParser", `${body} return qq`);
+        "isElectron", "cookieGet", "DOMParser", `${body} return bilibili`);
 
     return func(axios, getParameterByName, isElectron, cookieGet, DOMParser);
 }
 
-const qq = wrapFunc();
+const bilibili = wrapFunc();
 
 exports.search = (key) => {
-    const keywords = encodeURI(encodeURI(key));
+    const keywords = encodeURI(key);
     return new Promise(resolve => {
-        return qq.get_user().success(resolve);
+        return bilibili.get_user().success(resolve);
     }).then(() => {
         return new Promise(resolve => {
-            qq.search(`/search?keywords=${keywords}&type=0&curpage=1`)
+            bilibili.search(`/search?keywords=${keywords}&type=0&curpage=1`)
                 .success(resolve)
         })
     })
@@ -121,6 +106,6 @@ exports.search = (key) => {
 
 exports.song = (result) => {
     return new Promise((resolve, reject) => {
-        qq.bootstrap_track(result, resolve, reject);
+        bilibili.bootstrap_track(result, resolve, reject);
     })
 };

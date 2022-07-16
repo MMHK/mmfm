@@ -4,6 +4,7 @@ const axios = require("axios").create({
 const path = require("path");
 const fs = require("fs");
 const forge = require("node-forge");
+const btoa = require("btoa");
 
 const axiosCookieJarSupport = require('axios-cookiejar-support').default;
 const tough = require('tough-cookie');
@@ -12,22 +13,29 @@ axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
 
 axios.interceptors.request.use((config) => {
-    config.headers["User-Agent"] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36';
-    // config.headers["Host"] = 'www.netease.cn';
+    config.headers["User-Agent"] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30';
     config.jar = cookieJar;
     config.withCredentials = true;
-    //
-    // if (config.url.includes("netease.com")) {
-    //     config.headers["Referer"] = 'https://y.netease.com/';
-    // }
-    //
-    // if (config.url.includes("convert_url")) {
-    //     delete config.jar;
-    //     config.withCredentials = false;
-    //     delete config.headers["Host"];
-    // }
+
+    if (config.url.includes('://music.163.com/')) {
+        config.headers["Referer"] = 'https://music.163.com/';
+        config.headers["Origin"] = 'https://music.163.com';
+    }
+    if (config.url.includes('://interface3.music.163.com/')) {
+        config.headers["Referer"] = 'https://music.163.com/';
+        config.headers["Origin"] = 'https://music.163.com';
+    }
+    if (config.url.includes('://gist.githubusercontent.com/')) {
+        config.headers["Referer"] = 'https://gist.githubusercontent.com/';
+        config.headers["Origin"] = 'https://gist.githubusercontent.com';
+    }
+
+    // console.log(config);
 
     return config;
+}, (error) => {
+    // console.log(error);
+    Promise.reject(error);
 });
 
 axios.interceptors.response.use((response) => {
@@ -35,7 +43,7 @@ axios.interceptors.response.use((response) => {
     // console.log(response.data);
     return response;
 }, (error) => {
-    console.error(error);
+    // console.error(error);
 
     return Promise.reject(error);
 });
@@ -85,24 +93,50 @@ function wrapFunc() {
     let body = fs.readFileSync(jsFile);
 
     const func = new Function("axios", "getParameterByName",
-        "isElectron", "cookieGet", "forge", "cookieSet",`${body} return netease`);
+        "isElectron", "cookieGet", "forge", "btoa", "cookieSet",`${body} return netease`);
 
-    return func(axios, getParameterByName, isElectron, cookieGet, forge, cookieSet, forge);
+    return func(axios, getParameterByName, isElectron, cookieGet, forge, btoa, cookieSet);
 }
 
+
 const netease = wrapFunc();
+
+const songDetail =  (result) => {
+    return new Promise((resolve, reject) => {
+        netease.bootstrap_track(result, resolve, reject);
+    })
+};
 
 exports.search = (key) => {
     const keywords = encodeURI(key);
 
     return new Promise(resolve => {
-        netease.search(`/search?keywords=${keywords}&type=0&curpage=1`)
-            .success(resolve)
+       netease.get_user().success(resolve);
+    }).then(() => {
+        return new Promise(resolve => {
+            netease.search(`/search?keywords=${keywords}&type=0&curpage=1`)
+                .success(resolve)
+        })
     })
+        .then((data) => {
+            const list = data.result || [];
+            return Promise.all(list.map((track) => {
+                return songDetail(track).then((data) => {
+                    return {
+                        ...track,
+                        ...data,
+                    }
+                }, () => {
+                    return track;
+                });
+            }))
+        })
+        .then((data) => {
+            return {
+                result: data,
+                total: data.length || 0,
+            }
+        })
 };
 
-exports.song = (result) => {
-    return new Promise((resolve, reject) => {
-        netease.bootstrap_track(result, resolve, reject);
-    })
-};
+exports.song = songDetail;

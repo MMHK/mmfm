@@ -7,7 +7,7 @@ describe("qqAPI", function() {
 
         const keywords = "推开世界的门";
 
-        qqApi.search(keywords)
+        return qqApi.search(keywords)
             .then((data) => {
                 console.dir(data.result);
             })
@@ -30,7 +30,7 @@ describe("qqAPI", function() {
             url: undefined
         };
 
-        qqApi.song(track)
+        return qqApi.song(track)
             .then((data) => {
                 console.dir(data)
             })
