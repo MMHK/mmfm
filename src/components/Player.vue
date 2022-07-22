@@ -2,12 +2,12 @@
   <div class="player-wrap fm">
     <div id="ablums" class="fm-ablums">
       <div class="fm-ablums-photo">
-        <img :src="album.cover" alt="music ablums">
+        <img onerror="this.src='image/default-cover.png';" :src="album.cover" alt="music ablums">
       </div>
       <div class="fm-ablums-name">
         <h2 class="name-title">
           <i class="iconfont icon-music"></i>
-          <a target="_blank">{{album.name}}</a>
+          <a target="_blank" v-html="album.name"></a>
         </h2>
         <span v-if="album.author" class="name-anthor">
           <i class="fa fa-user"></i>
