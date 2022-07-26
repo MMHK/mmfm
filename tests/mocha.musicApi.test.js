@@ -5,7 +5,7 @@ describe("musicApi", function () {
     it("search", async function () {
         this.timeout(60000);
 
-        const result = await musicApi.search("最伟大的作品");
+        const result = await musicApi.search("How Many Times");
 
         console.dir(result);
     });

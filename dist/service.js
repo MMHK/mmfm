@@ -1663,11 +1663,21 @@ const cache = flatCache.load("musicCache", os.tmpdir());
 
 exports.search = (keywork) => {
     return Promise.all([neteaseService.search(keywork)
-        , QQService.search(keywork)
-        , MiguService.search(keywork)
-        , KuwoService.search(keywork)
-        , kugouService.search(keywork)
-        , bilibiliService.search(keywork)
+        , QQService.search(keywork).catch((error) => {
+            return Promise.resolve([]);
+        })
+        , MiguService.search(keywork).catch((error) => {
+            return Promise.resolve([]);
+        })
+        , KuwoService.search(keywork).catch((error) => {
+            return Promise.resolve([]);
+        })
+        , kugouService.search(keywork).catch((error) => {
+            return Promise.resolve([]);
+        })
+        , bilibiliService.search(keywork).catch((error) => {
+            return Promise.resolve([]);
+        })
     ])
         .then((dataList) => {
             const list = Array.from(dataList).reduce(function (last, row) {
