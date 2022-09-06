@@ -2392,6 +2392,18 @@ function cookieGet(cookie, callback) {
     });
 }
 
+function cookieSet(cookie, callback) {
+    const c = new tough.Cookie({
+        key: cookie.name,
+        value: cookie.value
+    });
+
+
+    cookieJar.setCookie(c, cookie.url, {}, (err, cookieEntry) => {
+        callback(cookieEntry);
+    });
+}
+
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
     name = name.replace(/[\[\]]/g, '\\$&'); // eslint-disable-line no-useless-escape
@@ -2420,9 +2432,9 @@ function wrapFunc() {
     }`);
 
     const func = new Function("axios", "getParameterByName",
-        "isElectron", "cookieGet", "DOMParser", `${body} return bilibili`);
+        "isElectron", "cookieGet", "DOMParser", "cookieSet", `${body} return bilibili`);
 
-    return func(axios, getParameterByName, isElectron, cookieGet, DOMParser);
+    return func(axios, getParameterByName, isElectron, cookieGet, DOMParser, cookieSet);
 }
 
 const bilibili = wrapFunc();
