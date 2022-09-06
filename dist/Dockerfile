@@ -9,7 +9,7 @@ RUN apk --update add git less openssh && \
     rm -rf /var/lib/apt/lists/* && \
     rm /var/cache/apk/* && \
     cd /app && \
-    yarn install
+    npm install -f
 
 
 EXPOSE 8011
