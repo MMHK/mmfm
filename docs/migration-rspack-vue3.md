@@ -1,73 +1,73 @@
-﻿# MMFM 閬风Щ瑷堢暙锛歊spack + Vue 3
+?# MMFM 遷移計畫：Rspack + Vue 3
 
-> 鐩锛氬皣 MMFM 鍓嶅緦绔緸 Vue CLI 3 + webpack 閬风Щ鑷?Rspack锛屽墠绔緸 Vue 2 鍗囩礆鑷?Vue 3锛屼甫绲变竴浣跨敤 yarn 浣滅偤鍞竴 package manager銆?> 鍙冭€冨皥妗堬細`D:\projects\search-agent-go\webroot\rspack.config.js`
+> 目標：將 MMFM 前後端從 Vue CLI 3 + webpack 遷移�?Rspack，前端從 Vue 2 升級�?Vue 3，並統一使用 yarn 作為唯一 package manager�?> 參考專案：`D:\projects\search-agent-go\webroot\rspack.config.js`
 
 ---
 
-## 0. 鐝剧媭鍒嗘瀽
+## 0. 現狀分析
 
-### 鍓嶇
-| 闋呯洰 | 鐝剧媭 |
+### 前端
+| 項目 | 現狀 |
 |---|---|
-| 妗嗘灦 | Vue 2.6 + core-js 2 |
-| 鎵撳寘宸ュ叿 | Vue CLI 3 (`vue-cli-service`) + webpack |
-| 鍏冧欢 | `App.vue`, `Player.vue` (342琛?, `Search.vue` (109琛? |
-| 妯ｅ紡 | SCSS (`sass` dart implementation) |
-| 閫氳▕ | EventBus (`new Vue()` 瀵︿綔) + Socket.IO client v2 |
-| 鎷栨洺 | `vuedraggable` v2 (Vue 2 鐗? |
+| 框架 | Vue 2.6 + core-js 2 |
+| 打包工具 | Vue CLI 3 (`vue-cli-service`) + webpack |
+| 元件 | `App.vue`, `Player.vue` (342�?, `Search.vue` (109�? |
+| 樣式 | SCSS (`sass` dart implementation) |
+| 通訊 | EventBus (`new Vue()` 實作) + Socket.IO client v2 |
+| 拖曳 | `vuedraggable` v2 (Vue 2 �? |
 | HTTP | `axios` + `qs` |
-| 妯℃澘 | `public/index.html` 浣跨敤 EJS 瑾炴硶 `<%= BASE_URL %>` |
+| 模板 | `public/index.html` 使用 EJS 語法 `<%= BASE_URL %>` |
 
-### 寰岀
-| 闋呯洰 | 鐝剧媭 |
+### 後端
+| 項目 | 現狀 |
 |---|---|
-| 妗嗘灦 | Express + Socket.IO 2 |
-| 鎵撳寘宸ュ叿 | webpack (`target: "node"`) + `webpack-node-externals` |
-| 鍏ュ彛 | `src/services/WebService.js` |
-| 杓稿嚭 | `dist/service.js` |
-| 闄勫姞妾旀 | `swagger.json`, `Dockerfile`, `package.json` 瑜囪＝鑷?`dist/` |
+| 框架 | Express + Socket.IO 2 |
+| 打包工具 | webpack (`target: "node"`) + `webpack-node-externals` |
+| 入口 | `src/services/WebService.js` |
+| 輸出 | `dist/service.js` |
+| 附加檔案 | `swagger.json`, `Dockerfile`, `package.json` 複製�?`dist/` |
 
-### 闇€閬风Щ鐨?Vue 2 鐗规湁瀵硶锛堝凡閫愪竴鐩ら粸锛?
-| 妾旀 | Vue 2 瀵硶 | Vue 3 铏曠悊鏂瑰紡 |
+### 需遷移�?Vue 2 特有寫法（已逐一盤點�?
+| 檔案 | Vue 2 寫法 | Vue 3 處理方式 |
 |---|---|---|
-| `Bus.js` | `new Vue()` 浣滅偤 EventBus | 鏀圭敤 `mitt` 搴?|
+| `Bus.js` | `new Vue()` 作為 EventBus | 改用 `mitt` �?|
 | `main.js` | `new Vue({ render: h => h(App) }).$mount('#app')` | `createApp(App).mount('#app')` |
-| `Player.vue` | `this.$set(array, index, value)` (澶氳檿) | Vue 3 绉婚櫎 `$set`锛屾敼鐢ㄧ洿鎺ョ储寮曡肠鍊?`array[index] = value` |
-| `Player.vue` | `import draggable from "vuedraggable"` (v2) | 鏀圭敤 `vuedraggable` v4 (`vue-draggable-plus` 浜﹀彲) |
+| `Player.vue` | `this.$set(array, index, value)` (多處) | Vue 3 移除 `$set`，改用直接索引賦�?`array[index] = value` |
+| `Player.vue` | `import draggable from "vuedraggable"` (v2) | 改用 `vuedraggable` v4 (`vue-draggable-plus` 亦可) |
 | `Player.vue` | `EventBus.$on` / `EventBus.$emit` | `emitter.on` / `emitter.emit` (mitt API) |
-| `Search.vue` | `import { Promise } from 'q'` | 鏀圭敤鍘熺敓 `Promise` (绉婚櫎 `q` 渚濊炒) |
+| `Search.vue` | `import { Promise } from 'q'` | 改用原生 `Promise` (移除 `q` 依賴) |
 | `Search.vue` | `EventBus.$emit` | `emitter.emit` (mitt API) |
 | `ChatService.js` | `EventBus.$emit` | `emitter.emit` |
-| `ChatService.js` | `socket.io-client` v2 | 鍗囩礆鑷?v4 (闇€鑸囧緦绔?Socket.IO 鍚屾鍗囩礆) |
-| `public/index.html` | `<%= BASE_URL %>favicon.ico` (EJS 妯℃澘) | 鏀圭偤闈滄厠璺緫 `/favicon.ico` |
+| `ChatService.js` | `socket.io-client` v2 | 升級�?v4 (需與後�?Socket.IO 同步升級) |
+| `public/index.html` | `<%= BASE_URL %>favicon.ico` (EJS 模板) | 改為靜態路徑 `/favicon.ico` |
 
 ---
 
-## 1. 鍩疯闅庢
+## 1. 執行階段
 
-### Phase 1 鈥?鍩虹瑷柦 & 渚濊炒鏇存柊
+### Phase 1 �?基礎設施 & 依賴更新
 
-**鐩**锛氬缓绔?Rspack 瑷畾妾旓紝鏇存柊 `package.json`锛岀鐢?npm锛屾竻鐞嗚垔瑷畾銆?
-#### 1.1 鏂板妾旀
+**目標**：建�?Rspack 設定檔，更新 `package.json`，禁�?npm，清理舊設定�?
+#### 1.1 新增檔案
 
-| 妾旀 | 瑾槑 |
+| 檔案 | 說明 |
 |---|---|
-| `rspack.config.js` | 鍓嶇 Rspack 瑷畾锛堝弮鑰?search-agent-go 鐨勮ō瀹氾級 |
-| `rspack.config.service.js` | 寰岀 Rspack 瑷畾锛坱arget: node锛?|
+| `rspack.config.js` | 前端 Rspack 設定（參�?search-agent-go 的設定） |
+| `rspack.config.service.js` | 後端 Rspack 設定（target: node�?|
 
-#### 1.2 鍒櫎妾旀
+#### 1.2 刪除檔案
 
-| 妾旀 | 鍘熷洜 |
+| 檔案 | 原因 |
 |---|---|
-| `vue.config.js` | 琚?`rspack.config.js` 鍙栦唬 |
-| `babel.config.js` | Rspack 浣跨敤鍏у缓 swc-loader锛屼笉闇€瑕?babel |
-| `webpack.config.js` | 琚?`rspack.config.service.js` 鍙栦唬 |
-| `postcss.config.js` | 鑻ヤ笉闇€瑕?autoprefixer 鍙Щ闄わ紱鑻ヤ繚鐣欏墖鏇存柊鐐?Rspack 鐩稿鏍煎紡 |
-| `.browserslistrc` | 涓嶅啀浣跨敤 babel锛屽彲绉婚櫎 |
+| `vue.config.js` | �?`rspack.config.js` 取代 |
+| `babel.config.js` | Rspack 使用內建 swc-loader，不需�?babel |
+| `webpack.config.js` | �?`rspack.config.service.js` 取代 |
+| `postcss.config.js` | 若不需�?autoprefixer 可移除；若保留則更新�?Rspack 相容格式 |
+| `.browserslistrc` | 不再使用 babel，可移除 |
 
-#### 1.3 `package.json` 璁婃洿
+#### 1.3 `package.json` 變更
 
-**绉婚櫎鐨勪緷璩?*锛?```
+**移除的依�?*�?```
 @vue/cli-plugin-babel
 @vue/cli-plugin-eslint
 @vue/cli-service
@@ -88,11 +88,11 @@ eslint-plugin-vue (v5)
 esm
 ```
 
-**鏂板鐨勪緷璩?*锛?```
+**新增的依�?*�?```
 dependencies:
   vue@^3.4
   mitt@^3.0
-  vuedraggable@^4.1.0  (Vue 3 鐗堬紝鍗?vue-draggable-plus 鎴?vuedraggable next)
+  vuedraggable@^4.1.0  (Vue 3 版，�?vue-draggable-plus �?vuedraggable next)
   socket.io-client@^4.7
 
 devDependencies:
@@ -108,7 +108,7 @@ devDependencies:
   dotenv@^17
 ```
 
-**鏇存柊 script**锛?```json
+**更新 script**�?```json
 {
   "scripts": {
     "serve": "rspack serve --mode development",
@@ -121,37 +121,37 @@ devDependencies:
 }
 ```
 
-#### 1.4 绂佺敤 npm
+#### 1.4 禁用 npm
 
-鍦?`package.json` 鍔犲叆 `preinstall` script锛?```json
+�?`package.json` 加入 `preinstall` script�?```json
 "scripts": {
   "preinstall": "npx only-allow yarn"
 }
 ```
 
-#### 1.5 淇 `.npmrc`
+#### 1.5 修正 `.npmrc`
 
-taobao mirror 宸插け鏁堬紝闇€鏇存柊鐐哄彲鐢?mirror 鎴栫洿鎺ョЩ闄よ嚜瑷?mirror锛?```
+taobao mirror 已失效，需更新為可�?mirror 或直接移除自�?mirror�?```
 registry=https://registry.npmmirror.com
 ```
 
 ---
 
-### Phase 2 鈥?鍓嶇 Rspack 瑷畾
+### Phase 2 �?前端 Rspack 設定
 
-**鐩**锛氬缓绔?`rspack.config.js`锛岀瓑鏁堢従鏈?`vue.config.js` 鍔熻兘銆?
-#### 闂滈嵉灏嶆噳
+**目標**：建�?`rspack.config.js`，等效現�?`vue.config.js` 功能�?
+#### 關鍵對應
 
-| vue.config.js 鍔熻兘 | rspack.config.js 瀵︿綔 |
+| vue.config.js 功能 | rspack.config.js 實作 |
 |---|---|
 | `outputDir: dist/public` | `output.path: path.resolve(__dirname, 'dist/public')` |
-| `chainWebpack: delete splitChunks` | 闋愯ō涓嶅暉鐢?splitChunks锛堟垨鎸夐渶瑷畾锛?|
-| `css.loaderOptions.sass` | `module.rules` 涓ō瀹?scss rule + `sass-loader` |
-| `devServer.proxy` | `devServer.proxy` (Rspack 鍏у缓鏀彺) |
-| EJS 妯℃澘 `<%= BASE_URL %>` | `HtmlWebpackPlugin` + 淇敼 `index.html` 鐐洪潨鎱嬭矾寰?|
-| 鐒?splitChunks 鍠竴 bundle | 淇濇寔 `optimization.splitChunks: false` |
+| `chainWebpack: delete splitChunks` | 預設不啟�?splitChunks（或按需設定�?|
+| `css.loaderOptions.sass` | `module.rules` 中設�?scss rule + `sass-loader` |
+| `devServer.proxy` | `devServer.proxy` (Rspack 內建支援) |
+| EJS 模板 `<%= BASE_URL %>` | `HtmlWebpackPlugin` + 修改 `index.html` 為靜態路�?|
+| �?splitChunks 單一 bundle | 保持 `optimization.splitChunks: false` |
 
-#### `rspack.config.js` 鑽夋
+#### `rspack.config.js` 草案
 
 ```js
 require('dotenv').config();
@@ -255,9 +255,9 @@ module.exports = {
 
 ---
 
-### Phase 3 鈥?Vue 2 鈫?Vue 3 閬风Щ
+### Phase 3 �?Vue 2 �?Vue 3 遷移
 
-**鐩**锛氫慨鏀规墍鏈夊墠绔厓浠讹紝娑堥櫎 Vue 2 鐗规湁瀵硶銆?
+**目標**：修改所有前端元件，消除 Vue 2 特有寫法�?
 #### 3.1 `src/main.js`
 
 ```js
@@ -288,7 +288,7 @@ const emitter = mitt();
 export { emitter as EventBus };
 ```
 
-**API 灏嶆噳**锛?| Vue 2 EventBus | mitt |
+**API 對應**�?| Vue 2 EventBus | mitt |
 |---|---|
 | `EventBus.$on(event, handler)` | `EventBus.on(event, handler)` |
 | `EventBus.$off(event, handler)` | `EventBus.off(event, handler)` |
@@ -296,30 +296,30 @@ export { emitter as EventBus };
 
 #### 3.3 `src/App.vue`
 
-- `$on` 鈫?`on`锛堥厤鍚?mitt锛?- 鍏堕 Options API 瀵硶 Vue 3 瀹屽叏鐩稿锛屼笉闇€鏀瑰嫊
+- `$on` �?`on`（配�?mitt�?- 其餘 Options API 寫法 Vue 3 完全相容，不需改動
 
 #### 3.4 `src/components/Player.vue`
 
-| 璁婃洿闋?| 瑾槑 |
+| 變更�?| 說明 |
 |---|---|
-| `this.$set(array, index, value)` | 鍏ㄩ儴鏀圭偤 `array[index] = value`锛圴ue 3 Proxy-based reactivity 鏀彺鐩存帴绱㈠紩锛?|
-| `EventBus.$on` / `$emit` | 鏀圭偤 `EventBus.on` / `EventBus.emit` |
-| `import draggable from "vuedraggable"` | 纰鸿獚 v4 鐗堟湰鐨?import 鏂瑰紡 |
-| `<draggable v-model="playlist">` | v4 鐨?`v-model` 瑾炴硶鍙兘鐣ユ湁涓嶅悓锛岄渶纰鸿獚 |
+| `this.$set(array, index, value)` | 全部改為 `array[index] = value`（Vue 3 Proxy-based reactivity 支援直接索引�?|
+| `EventBus.$on` / `$emit` | 改為 `EventBus.on` / `EventBus.emit` |
+| `import draggable from "vuedraggable"` | 確認 v4 版本�?import 方式 |
+| `<draggable v-model="playlist">` | v4 �?`v-model` 語法可能略有不同，需確認 |
 
 #### 3.5 `src/components/Search.vue`
 
-| 璁婃洿闋?| 瑾槑 |
+| 變更�?| 說明 |
 |---|---|
-| `import { Promise } from 'q'` | 绉婚櫎锛屾敼鐢ㄥ師鐢?`Promise` |
-| `EventBus.$emit` | 鏀圭偤 `EventBus.emit` |
+| `import { Promise } from 'q'` | 移除，改用原�?`Promise` |
+| `EventBus.$emit` | 改為 `EventBus.emit` |
 
 #### 3.6 `src/services/ChatService.js`
 
-| 璁婃洿闋?| 瑾槑 |
+| 變更�?| 說明 |
 |---|---|
-| `EventBus.$emit` | 鏀圭偤 `EventBus.emit` |
-| `socket.io-client` v2 | 鍗囩礆鑷?v4锛孉PI 鍩烘湰鐩稿浣嗛渶纰鸿獚 `transports` 閬搁爡 |
+| `EventBus.$emit` | 改為 `EventBus.emit` |
+| `socket.io-client` v2 | 升級�?v4，API 基本相容但需確認 `transports` 選項 |
 
 #### 3.7 `public/index.html`
 
@@ -333,21 +333,21 @@ export { emitter as EventBus };
 
 ---
 
-### Phase 4 鈥?寰岀 Rspack 鎵撳寘
+### Phase 4 �?後端 Rspack 打包
 
-**鐩**锛氬缓绔?`rspack.config.service.js`锛岀瓑鏁堢従鏈?`webpack.config.js`銆?
-#### 闂滈嵉灏嶆噳
+**目標**：建�?`rspack.config.service.js`，等效現�?`webpack.config.js`�?
+#### 關鍵對應
 
 | webpack.config.js | rspack.config.service.js |
 |---|---|
 | `target: "node"` | `target: "node"` |
-| `nodeExternals({ allowlist: [...] })` | `externalsPresets: { node: true }` + 鎵嬪嫊 `externals` |
-| `CopyWebpackPlugin` | `copy-webpack-plugin` (Rspack 鐩稿) |
-| `webpack.ProgressPlugin()` | 涓嶉渶瑕侊紙Rspack 鍏у缓閫插害锛?|
+| `nodeExternals({ allowlist: [...] })` | `externalsPresets: { node: true }` + 手動 `externals` |
+| `CopyWebpackPlugin` | `copy-webpack-plugin` (Rspack 相容) |
+| `webpack.ProgressPlugin()` | 不需要（Rspack 內建進度�?|
 | `optimization.minimize: false` | `optimization.minimize: false` |
 | `devtool: "none"` | `devtool: false` |
 
-#### `rspack.config.service.js` 鑽夋
+#### `rspack.config.service.js` 草案
 
 ```js
 const path = require('path');
@@ -370,7 +370,7 @@ module.exports = {
 
   externalsPresets: { node: true },
   externals: [
-    // 淇濈暀闇€瑕?bundle 鐨勬ā绲勶紙绛夋晥鍘?allowlist锛?    function({ request }, callback) {
+    // 保留需�?bundle 的模組（等效�?allowlist�?    function({ request }, callback) {
       const allowlist = [/^core-js/, /^@babel/, /webpack/, /^regenerator-runtime/,
                          'body-parser', 'swagger-ui-express', /^fetch/];
       if (allowlist.some(p => p instanceof RegExp ? p.test(request) : p === request)) {
@@ -397,36 +397,36 @@ module.exports = {
 
 ---
 
-### Phase 5 鈥?ESLint & 宸ュ叿閺堟洿鏂?
-| 妾旀 | 璁婃洿 |
+### Phase 5 �?ESLint & 工具鏈更�?
+| 檔案 | 變更 |
 |---|---|
-| `.eslintrc.js` | `plugin:vue/essential` 鈫?`plugin:vue/vue3-essential`锛沗babel-eslint` 鈫?`@babel/eslint-parser` |
-| `postcss.config.js` | 淇濈暀锛坅utoprefixer 浠嶅彲鐢ㄦ柤 Rspack锛夋垨绉婚櫎 |
+| `.eslintrc.js` | `plugin:vue/essential` �?`plugin:vue/vue3-essential`；`babel-eslint` �?`@babel/eslint-parser` |
+| `postcss.config.js` | 保留（autoprefixer 仍可用於 Rspack）或移除 |
 
 ---
 
-### Phase 6 鈥?Socket.IO v2 鈫?v4 鍗囩礆锛堝墠寰岀鍚屾锛?
-**鐩**锛氬墠寰岀 Socket.IO 鍚屾鍗囩礆鑷?v4銆?
-#### 6.1 寰岀 `src/services/WebService.js`
+### Phase 6 �?Socket.IO v2 �?v4 升級（前後端同步�?
+**目標**：前後端 Socket.IO 同步升級�?v4�?
+#### 6.1 後端 `src/services/WebService.js`
 
-| 璁婃洿闋?| Before (v2) | After (v4) |
+| 變更�?| Before (v2) | After (v4) |
 |---|---|---|
-| 寮曞叆 | `const SocketIO = require('socket.io')` | `const { Server } = require('socket.io')` |
-| 鍒濆鍖?| `new SocketIO(server, { path: "/io" })` | `new Server(server, { path: "/io", cors: { origin: "*" } })` |
-| 寤ｆ挱 | `socket.to("chat").emit("msg", msg)` | 涓嶈畩锛坴4 浠嶆敮鎻存瑾炴硶锛?|
+| 引入 | `const SocketIO = require('socket.io')` | `const { Server } = require('socket.io')` |
+| 初始�?| `new SocketIO(server, { path: "/io" })` | `new Server(server, { path: "/io", cors: { origin: "*" } })` |
+| 廣播 | `socket.to("chat").emit("msg", msg)` | 不變（v4 仍支援此語法�?|
 
-#### 6.2 鍓嶇 `src/services/ChatService.js`
+#### 6.2 前端 `src/services/ChatService.js`
 
-| 璁婃洿闋?| Before (v2) | After (v4) |
+| 變更�?| Before (v2) | After (v4) |
 |---|---|---|
-| 寮曞叆 | `import io from 'socket.io-client'` | `import { io } from 'socket.io-client'` |
-| 閫ｇ窔 | `io(this.API, { path: "/io", transports: [...] })` | `io(this.API, { path: "/io", transports: ["websocket", "polling"] })` |
+| 引入 | `import io from 'socket.io-client'` | `import { io } from 'socket.io-client'` |
+| 連線 | `io(this.API, { path: "/io", transports: [...] })` | `io(this.API, { path: "/io", transports: ["websocket", "polling"] })` |
 
 ---
 
-### Phase 7 鈥?Docker Image 鍗囩礆
+### Phase 7 �?Docker Image 升級
 
-**鐩**锛歚node:13-alpine` 鈫?`node:18-alpine`銆?
+**目標**：`node:13-alpine` �?`node:18-alpine`�?
 #### `src/services/Dockerfile`
 
 ```dockerfile
@@ -439,46 +439,46 @@ FROM node:18-alpine
 
 ---
 
-### Phase 8 鈥?椹楄瓑
+### Phase 8 �?驗證
 
-| 姝ラ | 鍛戒护 | 闋愭湡绲愭灉 |
+| 步驟 | 命令 | 預期結果 |
 |---|---|---|
-| 1. Lint | `yarn lint` | 鐒￠尟瑾?|
-| 2. 鍓嶇鎵撳寘 | `yarn build` | `dist/public/` 鐢㈠嚭鎴愬姛 |
-| 3. 寰岀鎵撳寘 | `yarn build:service` | `dist/service.js` 鐢㈠嚭鎴愬姛 |
-| 4. Dev server | `yarn serve` | 鍓嶇 dev server 鍟熷嫊锛宲roxy 姝ｅ父 |
-| 5. 寰岀鍟熷嫊 | `yarn web` | Express 鍦?:8011 姝ｅ父鍟熷嫊 |
-| 6. 鎵嬪嫊娓│ | 鐎忚鍣ㄩ枊鍟熷墠绔?| 鎾斁銆佹悳灏嬨€佹嫋鏇冲姛鑳芥甯?|
+| 1. Lint | `yarn lint` | 無錯�?|
+| 2. 前端打包 | `yarn build` | `dist/public/` 產出成功 |
+| 3. 後端打包 | `yarn build:service` | `dist/service.js` 產出成功 |
+| 4. Dev server | `yarn serve` | 前端 dev server 啟動，proxy 正常 |
+| 5. 後端啟動 | `yarn web` | Express �?:8011 正常啟動 |
+| 6. 手動測試 | 瀏覽器開啟前�?| 播放、搜尋、拖曳功能正�?|
 
 ---
 
-## 2. 姹虹瓥瑷橀寗锛堝凡纰鸿獚锛?
-| # | 鍟忛 | 姹虹瓥 | 鍘熷洜 |
+## 2. 決策記錄（已確認�?
+| # | 問題 | 決策 | 原因 |
 |---|---|---|---|
-| 1 | 鏄惁寮曞叆 TypeScript锛?| **鍚?* | 鐝炬湁绋嬪紡纰煎叏 JS锛屽紩鍏?TS 鏈冨ぇ骞呭鍔犲伐浣滈噺 |
-| 2 | 鏄惁鏀圭敤 Composition API锛?| **鍚?* | Vue 3 瀹屽叏鐩稿 Options API锛屾敼鍕曢噺鏈€灏?|
-| 3 | Socket.IO 鏄惁鍗囩礆鑷?v4锛?| **鏄?* | v2 宸查亷鏅傦紝鍓嶅緦绔渶鍚屾鍗囩礆 |
-| 4 | `vuedraggable` 鍗囩礆鏂规锛?| **vuedraggable v4** (SortableJS/vue.draggable.next) | 鏈€鎺ヨ繎鍘?v2 API锛屾敼鍕曟渶灏?|
-| 5 | 鏄惁寮曞叆 `q` 鐨勬浛浠ｏ紵 | **绉婚櫎 `q`** | Search.vue 涓?`import { Promise } from 'q'` 鍙洿鎺ョ敤鍘熺敓 Promise 鍙栦唬 |
-| 6 | Docker base image 鏄惁鍗囩礆锛?| **鏄紝鍗囩礆鑷?node:18-alpine** | node:13 宸?EOL锛屼竴浣佃檿鐞?|
+| 1 | 是否引入 TypeScript�?| **�?* | 現有程式碼全 JS，引�?TS 會大幅增加工作量 |
+| 2 | 是否改用 Composition API�?| **�?* | Vue 3 完全相容 Options API，改動量最�?|
+| 3 | Socket.IO 是否升級�?v4�?| **�?* | v2 已過時，前後端需同步升級 |
+| 4 | `vuedraggable` 升級方案�?| **vuedraggable v4** (SortableJS/vue.draggable.next) | 最接近�?v2 API，改動最�?|
+| 5 | 是否引入 `q` 的替代？ | **移除 `q`** | Search.vue �?`import { Promise } from 'q'` 可直接用原生 Promise 取代 |
+| 6 | Docker base image 是否升級�?| **是，升級�?node:18-alpine** | node:13 �?EOL，一併處�?|
 
 ---
 
-## 3. 棰ㄩ毆瑭曚及
+## 3. 風險評估
 
-| 棰ㄩ毆 | 褰遍熆 | 绶╄В鎺柦 |
+| 風險 | 影響 | 緩解措施 |
 |---|---|---|
-| `vuedraggable` v4 API 宸暟 | 鎷栨洺鍔熻兘鍙兘闇€瑾挎暣 | 鍏堥璀?v4 鐨?`v-model` 鍜?event 瑾炴硶 |
-| Socket.IO v2鈫抳4 breaking changes | 鍓嶅緦绔€氳▕鍙兘涓柗 | 闇€鍚屾檪鍗囩礆鍓嶅緦绔紱娓│ WebSocket 閫ｇ窔 |
-| Rspack 灏?SCSS 鐨勮檿鐞嗘柟寮忎笉鍚?| 妯ｅ紡鍙兘鐣板父 | 鍙冭€冨皥妗堝凡椹楄瓑 SCSS 鍙敤 |
-| `listen1_chrome_extension` git 渚濊炒 | yarn install 鍙兘澶辨晽 | 纰鸿獚 git URL 鍙瓨鍙?|
-| `global` 鐗╀欢锛堝墠绔級 | Vue 3 涓嶅啀浣跨敤 `global` | `ChatService.js` / `SearchService.js` / `SongService.js` 涓殑 `global.WS_URL` 绛夐渶鏀圭偤 `window.WS_URL` 鎴栧緸 `index.html` 鐨?script 璁婃暩璁€鍙?|
+| `vuedraggable` v4 API 差異 | 拖曳功能可能需調整 | 先驗�?v4 �?`v-model` �?event 語法 |
+| Socket.IO v2→v4 breaking changes | 前後端通訊可能中斷 | 需同時升級前後端；測試 WebSocket 連線 |
+| Rspack �?SCSS 的處理方式不�?| 樣式可能異常 | 參考專案已驗證 SCSS 可用 |
+| `listen1_chrome_extension` git 依賴 | yarn install 可能失敗 | 確認 git URL 可存�?|
+| `global` 物件（前端） | Vue 3 不再使用 `global` | `ChatService.js` / `SearchService.js` / `SongService.js` 中的 `global.WS_URL` 等需改為 `window.WS_URL` 或從 `index.html` �?script 變數讀�?|
 
 ---
 
-## 4. 妾旀褰遍熆绡勫湇
+## 4. 檔案影響範圍
 
-### 淇敼锛垀15 鍊嬫獢妗堬級
+### 修改（~15 個檔案）
 - `package.json`
 - `.npmrc`
 - `.eslintrc.js`
@@ -488,17 +488,17 @@ FROM node:18-alpine
 - `src/components/Player.vue`
 - `src/components/Search.vue`
 - `src/services/Bus.js`
-- `src/services/ChatService.js`锛圗ventBus API + Socket.IO v4锛?- `src/services/SearchService.js`锛坄global` 鈫?`window`锛?- `src/services/SongService.js`锛坄global` 鈫?`window`锛?- `src/services/WebService.js`锛圫ocket.IO v4 API锛?- `src/services/Dockerfile`锛坣ode:13 鈫?node:18锛?- `src/services/package.json`锛坰ocket.io v2 鈫?v4锛?
-### 鏂板锛? 鍊嬫獢妗堬級
+- `src/services/ChatService.js`（EventBus API + Socket.IO v4�?- `src/services/SearchService.js`（`global` �?`window`�?- `src/services/SongService.js`（`global` �?`window`�?- `src/services/WebService.js`（Socket.IO v4 API�?- `src/services/Dockerfile`（node:13 �?node:18�?- `src/services/package.json`（socket.io v2 �?v4�?
+### 新增�? 個檔案）
 - `rspack.config.js`
 - `rspack.config.service.js`
 
-### 鍒櫎锛?~5 鍊嬫獢妗堬級
+### 刪除�?~5 個檔案）
 - `vue.config.js`
 - `babel.config.js`
 - `webpack.config.js`
-- `postcss.config.js`锛堝彲閬革級
-- `.browserslistrc`锛堝彲閬革級
+- `postcss.config.js`（可選）
+- `.browserslistrc`（可選）
 
-### 涓嶆敼鍕?- 寰岀 provider 妯＄祫锛坄src/services/provider/*`锛?- 娓│妾旀锛坄tests/*`锛?- `src/services/MusieApi.js`
-- SCSS 妯ｅ紡妾旀
+### 不改�?- 後端 provider 模組（`src/services/provider/*`�?- 測試檔案（`tests/*`�?- `src/services/MusieApi.js`
+- SCSS 樣式檔案

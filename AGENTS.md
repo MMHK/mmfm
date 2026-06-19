@@ -1,20 +1,20 @@
 ﻿# AGENTS.md - Project Guidelines (Mandatory for AI Models)
 
 This document is the behavior contract for this project. All AI-generated code MUST strictly follow these rules.
-Violating any mandatory rule 鈫?rewrite and fix immediately.
+Violating any mandatory rule → rewrite and fix immediately.
 
 ---
 
 ## 0. Project Overview
 
-MMFM 鈥?intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO backend serving music search/playback via multi-provider APIs (Netease, QQ, Migu, Kuwo, Kugou, Bilibili).
+MMFM — intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO backend serving music search/playback via multi-provider APIs (Netease, QQ, Migu, Kuwo, Kugou, Bilibili).
 
 ### Tech Stack
 - **Vue 3** + Rspack (frontend, Options API)
 - **Express** + Socket.IO 4 (backend, port 8011)
 - **Rspack** (frontend via rspack.config.js; backend via rspack.config.service.js)
 - **SCSS** (`sass` implementation, dart sass)
-- **yarn** (鍞竴 package manager锛宯pm 宸茬鐢?via `preinstall: only-allow yarn`)
+- **yarn** (唯一 package manager；npm 已禁用 via `preinstall: only-allow yarn`)
 - **dotenv** (devDependency, for `.env` file loading in rspack.config.js)
 
 ---
@@ -22,7 +22,7 @@ MMFM 鈥?intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO back
 ## 1. Core Principles (Highest Priority, Violation = Rewrite)
 
 1. **No over-engineering**
-   - Unless the requirement explicitly states "high scalability" or "multi-team maintenance" 鈥?always use the simplest, most understandable approach.
+   - Unless the requirement explicitly states "high scalability" or "multi-team maintenance" — always use the simplest, most understandable approach.
    - No premature abstraction, layering, future-proofing code, or early design patterns.
 
 2. **Follow existing patterns**
@@ -42,8 +42,8 @@ MMFM 鈥?intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO back
 | Task | Command |
 |---|---|
 | Dev server (frontend, proxies to :8011) | `yarn serve` |
-| Build frontend 鈫?`dist/public/` | `yarn build` |
-| Bundle backend 鈫?`dist/service.js` | `yarn build:service` |
+| Build frontend → `dist/public/` | `yarn build` |
+| Bundle backend → `dist/service.js` | `yarn build:service` |
 | Run backend (dev) | `yarn web` |
 | Run backend (production) | `cd dist && node service.js -d ./public` |
 | Tests (single provider) | `npx mocha tests/mocha.<provider>.test.js` |
@@ -51,15 +51,15 @@ MMFM 鈥?intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO back
 
 ### Verification Order
 After making changes, run in this order:
-1. `npx eslint src/` 鈥?lint check
-2. `yarn build` 鈥?frontend build verification
-3. `yarn build:service` 鈥?backend build verification
+1. `npx eslint src/` — lint check
+2. `yarn build` — frontend build verification
+3. `yarn build:service` — backend build verification
 
 ---
 
 ## 3. Architecture
 
-- **Frontend entry**: `src/main.js` 鈫?`src/App.vue` 鈫?`src/components/{Player,Search}.vue`
+- **Frontend entry**: `src/main.js` → `src/App.vue` → `src/components/{Player,Search}.vue`
 - **Backend entry**: `src/services/WebService.js` (Express + Socket.IO on port 8011, socket path `/io`)
 - **Music API aggregator**: `src/services/MusieApi.js` (note: filename typo is intentional/historical)
 - **Provider modules**: `src/services/provider/{netease,qq,migu,kuwo,kugou,bilibili}.js`
@@ -69,11 +69,11 @@ After making changes, run in this order:
 
 ### Key gotchas
 
-- **Package manager**: yarn (yarn.lock present). `.npmrc` uses npmmirror 鈥?may need updating if unreachable.
-- **Dev proxy**: rspack.config.js proxies `/api`, `/io`, `/song`, `/cache` to `127.0.0.1:8011` 鈥?backend must be running separately during dev.
-- **splitChunks disabled** in rspack.config.js 鈥?single JS bundle output.
+- **Package manager**: yarn (yarn.lock present). `.npmrc` uses npmmirror — may need updating if unreachable.
+- **Dev proxy**: rspack.config.js proxies `/api`, `/io`, `/song`, `/cache` to `127.0.0.1:8011` — backend must be running separately during dev.
+- **splitChunks disabled** in rspack.config.js — single JS bundle output.
 - **Backend bundling**: rspack.config.service.js targets `node`, uses `externalsPresets: { node: true }`. Copies `swagger.json`, `Dockerfile`, and `package.json` to `dist/`.
-- **Tests are live integration tests** hitting real music APIs with timeouts up to 3 hours. No mocks. No test for `mocha.webserice.test.js` exists despite it being the `yarn test` target 鈥?run individual provider test files directly.
+- **Tests are live integration tests** hitting real music APIs with timeouts up to 3 hours. No mocks. No test for `mocha.webserice.test.js` exists despite it being the `yarn test` target — run individual provider test files directly.
 - **Song list persistence**: Playlist is saved to `cache/playlist.json` (file-based). Loaded on server startup, written on each `/song/save` request.
 - **No TypeScript, no CSS modules**. Styles use SCSS (`sass` implementation, not `node-sass`).
 - **Docker base**: `node:18-alpine`.
@@ -91,9 +91,9 @@ After making changes, run in this order:
 ## 4. Code Style Rules
 
 ### Function Length
-- **New code**: Functions/methods 鈮?40 lines (split if exceeded)
-- **Existing code**: Some functions exceed 40 lines 鈥?treated as tech debt
-- When modifying existing long functions, follow the 40-line rule **only within the changed scope** 鈥?do not refactor the entire function
+- **New code**: Functions/methods ≤ 40 lines (split if exceeded)
+- **Existing code**: Some functions exceed 40 lines — treated as tech debt
+- When modifying existing long functions, follow the 40-line rule **only within the changed scope** — do not refactor the entire function
 
 ### Naming Conventions
 - JavaScript identifiers: `camelCase` for variables/functions, `PascalCase` for components/classes
@@ -111,7 +111,7 @@ After making changes, run in this order:
 - Component registration: local registration in parent component (see App.vue pattern)
 - Event bus: use `EventBus.on()` / `EventBus.emit()` from `src/services/Bus.js` (powered by `mitt`)
 - Template syntax: standard Vue 3 directives (`v-if`, `v-for`, `v-model`, etc.)
-- No `this.$set()` 鈥?Vue 3 uses Proxy-based reactivity, supports direct index assignment on arrays
+- No `this.$set()` — Vue 3 uses Proxy-based reactivity, supports direct index assignment on arrays
 
 ---
 
@@ -119,13 +119,13 @@ After making changes, run in this order:
 
 ### Core Principle
 - **No bulk test suite generation**
-  Unless the requirement explicitly states "write complete tests from scratch" or "coverage 鈮?90%", add at most 3鈥? test cases per change.
+  Unless the requirement explicitly states "write complete tests from scratch" or "coverage ≤ 90%", add at most 3— test cases per change.
 
 ### Incremental Test Modification (Order is mandatory)
 1. Check if test file already exists for the module
-2. If yes 鈫?only **append** new test functions at the end, or fix existing failing tests
-3. If context says "happy path is already covered" 鈫?only add edge case / error case
-4. If the module has no tests at all 鈫?only then create a new test file, still limited to 3鈥? cases
+2. If yes → only **append** new test functions at the end, or fix existing failing tests
+3. If context says "happy path is already covered" → only add edge case / error case
+4. If the module has no tests at all → only then create a new test file, still limited to 3— cases
 
 ### Test Style
 - Use `mocha` + `assert` (project standard)
@@ -135,7 +135,7 @@ After making changes, run in this order:
 
 ### Running Tests
 - Run individual provider tests: `npx mocha tests/mocha.<provider>.test.js`
-- Do NOT run `yarn test` 鈥?it points to a non-existent file
+- Do NOT run `yarn test` — it points to a non-existent file
 - Tests require network access to real music APIs
 
 ---
@@ -157,15 +157,15 @@ Unless explicitly requested, do not create:
 ## 7. Pre-Output Self-Check Checklist
 
 Before outputting any code, evaluate each item:
-- Does this code create 2x+ more structure/files than the requirement needs?
-- Are there unused interfaces/abstractions/design patterns/middleware?
-- Was a new test file created when tests already exist?
-- Were >5 new test cases added when the requirement was just a bug fix / field addition?
-- Were new README/docs files created without being asked?
-- Does new code follow existing patterns (Vue 3 Options API, Express middleware style)?
-- Was the verification order followed (lint 鈫?build 鈫?test)?
+- Does this code create 2x+ more structure/files than the requirement needs→
+- Are there unused interfaces/abstractions/design patterns/middleware→
+- Was a new test file created when tests already exist→
+- Were >5 new test cases added when the requirement was just a bug fix / field addition→
+- Were new README/docs files created without being asked→
+- Does new code follow existing patterns (Vue 3 Options API, Express middleware style)→
+- Was the verification order followed (lint → build → test)→
 
-鈫?If any is "yes" 鈫?immediately simplify to a minimal incremental version and note the reason.
+→ If any is "yes" → immediately simplify to a minimal incremental version and note the reason.
 
 ---
 
@@ -195,12 +195,12 @@ Before outputting any code, evaluate each item:
 ### 9.2 Workflow (Every Task MUST Follow This Order)
 
 ```
-1. PLAN       鈫?Main agent creates task plan (in memory or in doc file if requested)
-2. USER REVIEW 鈫?Main agent presents plan to user and WAITS for explicit approval before proceeding
-3. DELEGATE   鈫?Main agent spawns sub agent(s) to implement
-4. REVIEW     鈫?Main agent spawns sub agent to review code against plan
-5. UPDATE     鈫?Sub agent updates plan with task status (if doc-based plan)
-6. LOOP       鈫?Main agent checks progress, spawns next task or loops until done
+1. PLAN       → Main agent creates task plan (in memory or in doc file if requested)
+2. USER REVIEW → Main agent presents plan to user and WAITS for explicit approval before proceeding
+3. DELEGATE   → Main agent spawns sub agent(s) to implement
+4. REVIEW     → Main agent spawns sub agent to review code against plan
+5. UPDATE     → Sub agent updates plan with task status (if doc-based plan)
+6. LOOP       → Main agent checks progress, spawns next task or loops until done
 ```
 
 **User Review Gate (Mandatory)**:
@@ -213,9 +213,9 @@ Before outputting any code, evaluate each item:
 ### 9.3 Sub Agent Delegation Rules
 
 - **Always include full context** in the prompt: file paths, expected behavior, constraints from AGENTS.md.
-- **One sub agent per logical task** 鈥?do not batch unrelated changes.
-- **Parallel when independent** 鈥?launch multiple sub agents simultaneously for unrelated tasks.
-- **Sequential when dependent** 鈥?wait for prior sub agent to finish before spawning the next.
+- **One sub agent per logical task** — do not batch unrelated changes.
+- **Parallel when independent** — launch multiple sub agents simultaneously for unrelated tasks.
+- **Sequential when dependent** — wait for prior sub agent to finish before spawning the next.
 - Use `explore` agent before `general` agent when the task requires understanding unfamiliar code.
 
 ### 9.4 Main Agent Loop Responsibilities
