@@ -1,4 +1,4 @@
-FROM node:13-alpine
+﻿FROM node:18-alpine
 
 ENV HOST=0.0.0.0 ROOT=/app/public PORT=8011
 
@@ -9,7 +9,7 @@ RUN apk --update add git less openssh && \
     rm -rf /var/lib/apt/lists/* && \
     rm /var/cache/apk/* && \
     cd /app && \
-    npm install -f
+    yarn install
 
 
 EXPOSE 8011

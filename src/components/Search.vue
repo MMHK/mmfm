@@ -1,11 +1,11 @@
-<template>
+﻿<template>
   <div class="search-penal" v-if="show">
 
     <div class="wrap clear">
       <div class="search-group">
-        <input class="search-input" v-on:keydown.enter="search" type="text" v-model="searchText" placeholder="请输入歌手或歌名">
+        <input class="search-input" v-on:keydown.enter="search" type="text" v-model="searchText" placeholder="璇疯緭鍏ユ瓕鎵嬫垨姝屽悕">
         <button v-if="!loadingFlag" @click="search" class="btn btn-search">
-          <i class="iconfont icon-search"></i> 搜索
+          <i class="iconfont icon-search"></i> 鎼滅储
         </button>
         <button v-if="loadingFlag" class="btn btn-search">Loading...</button>
       </div>
@@ -30,7 +30,6 @@
 import SearchService from "../services/SearchService"
 import SongService from "../services/SongService"
 import { EventBus } from "../services/Bus"
-import { Promise } from 'q';
 
 const searchInstance = new SearchService();
 const songService = new SongService();
@@ -86,7 +85,7 @@ export default {
         return songService.preload(data)
       })
       .then(data => {
-        EventBus.$emit("song.add", data);
+        EventBus.emit("song.add", data);
         this.$emit("close");
       })
       .finally(()=> {

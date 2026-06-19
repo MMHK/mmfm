@@ -1,8 +1,8 @@
-import axios from "axios";
+﻿import axios from "axios";
 
 export default class {
     constructor(){
-        this.API = global.SEARCH_API_URL || "";
+        this.API = window.SEARCH_API_URL || "";
         this.request = axios.create();
 
         this.request.interceptors.response.use((response) => {

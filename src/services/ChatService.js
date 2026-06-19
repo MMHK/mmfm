@@ -1,4 +1,4 @@
-import io from 'socket.io-client';
+﻿import { io } from 'socket.io-client';
 import {
     EventBus
 } from "./Bus";
@@ -38,11 +38,11 @@ export default class {
                 if (args) {
                     var jcmd = args["cmd"] || "",
                         jargs = args["args"] || false;
-                    EventBus.$emit(jcmd, jargs);
+                    EventBus.emit(jcmd, jargs);
                 }
             });
 
-            EventBus.$emit(cmd.ready);
+            EventBus.emit(cmd.ready);
         });
     }
 

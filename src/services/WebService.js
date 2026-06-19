@@ -1,11 +1,11 @@
-const express = require('express');
+﻿const express = require('express');
 const app = express();
 const cli = require("cli");
 const bodyParser = require("body-parser");
 const musicApi = require('./MusieApi');
 const swaggerUi = require('swagger-ui-express')
 const server = require('http').Server(app);
-const SocketIO = require('socket.io');
+const { Server } = require('socket.io');
 const swaggerDocument = require('./swagger.json');
 const path = require("path");
 const crypto = require('crypto');
@@ -40,7 +40,7 @@ app.get('/api/song/search', async (req, res) => {
     if (!search) {
         res.status(400).send({
             status: false,
-            error: '参数错误'
+            error: '鍙傛暟閿欒'
         });
         return
     }
@@ -68,7 +68,7 @@ app.get('/api/song/detail', async (req, res) => {
     if (!id || !vendor) {
         res.status(400).send({
             status: false,
-            error: '参数错误'
+            error: '鍙傛暟閿欒'
         });
         return
     }
@@ -95,7 +95,7 @@ app.get('/api/song/url', async (req, res) => {
     if (!id || !vendor) {
         res.status(400).send({
             status: false,
-            error: '参数错误'
+            error: '鍙傛暟閿欒'
         });
         return
     }
@@ -117,6 +117,17 @@ app.get('/api/song/url', async (req, res) => {
 });
 
 let SongList = [];
+const playlistFile = path.join(webRoot, 'playlist.json');
+
+function loadPlaylist() {
+    try {
+        if (fs.existsSync(playlistFile)) {
+            SongList = JSON.parse(fs.readFileSync(playlistFile, 'utf8'));
+        }
+    } catch (e) {
+        console.error('Failed to load playlist:', e);
+    }
+}
 
 function downloadFile(url, saveAs) {
     const fileStream = fs.createWriteStream(saveAs);
@@ -195,7 +206,11 @@ app.post("/song/preload", async(req, res) => {
 
 app.post('/song/save', async (req, res) => {
     SongList = JSON.parse(req.body.list || "[]") || [];
-
+    try {
+        fs.writeFileSync(playlistFile, JSON.stringify(SongList));
+    } catch (e) {
+        console.error('Failed to save playlist:', e);
+    }
     await res.send(JSON.stringify(SongList))
 });
 
@@ -203,9 +218,7 @@ app.get("/song/get", async (req, res) => {
     await res.send(SongList)
 })
 
-const io = new SocketIO(server,{
-    path: "/io"
-});
+const io = new Server(server, { path: "/io", cors: { origin: "*" } });
 io.on("connection", (socket) => {
 
     socket.join("chat");
@@ -226,6 +239,7 @@ app.use(express.static(webRoot));
 if (require && require.main === module) {
     cli.info(`web root: ${webRoot}`);
     cli.ok(`server listen on: http://${options.host}:${options.port}`);
+    loadPlaylist();
     server.listen(options.port, options.host);
 }
 

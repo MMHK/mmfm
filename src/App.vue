@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div id="app">
     <div class="container">
       <player-panel></player-panel>
@@ -27,7 +27,7 @@ export default {
   },
 
   created() {
-    EventBus.$on("search.open", () => {
+    EventBus.on("search.open", () => {
       this.showSearch = true;
     });
   },

@@ -1,11 +1,5 @@
-import Vue from "vue";
+﻿import mitt from "mitt";
 
-if (!global.bus) {
-    global.bus = new Vue();
-}
+const emitter = mitt();
 
-let EventBus = global.bus;
-
-export {
-    EventBus
-}
+export { emitter as EventBus };
