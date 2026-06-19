@@ -1,4 +1,4 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 const rspack = require('@rspack/core');
 const path = require('path');
 const { VueLoaderPlugin } = require('rspack-vue-loader');

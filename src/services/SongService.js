@@ -1,9 +1,9 @@
-﻿import axios from "axios";
+import axios from "axios";
 import qs from "qs";
 
 export default class {
     constructor() {
-        this.API = window.API_URL || "";
+        this.API = global.API_URL || "";
         this.request = axios.create();
 
         this.request.interceptors.response.use((response) => {

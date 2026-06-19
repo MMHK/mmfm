@@ -1,0 +1,50 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+docs
+LICENSE
+
+# Tests
+tests
+
+# Misc
+.yarn
+.yarnrc.yml
+.npmrc
+.eslintrc.js
+eslint.config.js
+rspack.config.js
+rspack.config.service.js

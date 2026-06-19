@@ -1,11 +1,11 @@
-﻿const express = require('express');
+const express = require('express');
 const app = express();
 const cli = require("cli");
 const bodyParser = require("body-parser");
 const musicApi = require('./MusieApi');
 const swaggerUi = require('swagger-ui-express')
 const server = require('http').Server(app);
-const { Server } = require('socket.io');
+const { Server: SocketIO } = require('socket.io');
 const swaggerDocument = require('./swagger.json');
 const path = require("path");
 const crypto = require('crypto');
@@ -40,7 +40,7 @@ app.get('/api/song/search', async (req, res) => {
     if (!search) {
         res.status(400).send({
             status: false,
-            error: '鍙傛暟閿欒'
+            error: '参数错误'
         });
         return
     }
@@ -68,7 +68,7 @@ app.get('/api/song/detail', async (req, res) => {
     if (!id || !vendor) {
         res.status(400).send({
             status: false,
-            error: '鍙傛暟閿欒'
+            error: '参数错误'
         });
         return
     }
@@ -95,7 +95,7 @@ app.get('/api/song/url', async (req, res) => {
     if (!id || !vendor) {
         res.status(400).send({
             status: false,
-            error: '鍙傛暟閿欒'
+            error: '参数错误'
         });
         return
     }
@@ -117,16 +117,21 @@ app.get('/api/song/url', async (req, res) => {
 });
 
 let SongList = [];
-const playlistFile = path.join(webRoot, 'playlist.json');
+const cacheDir = path.join(webRoot, 'cache');
+const playlistFile = path.join(cacheDir, 'playlist.json');
 
-function loadPlaylist() {
-    try {
-        if (fs.existsSync(playlistFile)) {
-            SongList = JSON.parse(fs.readFileSync(playlistFile, 'utf8'));
-        }
-    } catch (e) {
-        console.error('Failed to load playlist:', e);
+if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir, { recursive: true });
+}
+
+try {
+    if (fs.existsSync(playlistFile)) {
+        const data = fs.readFileSync(playlistFile, 'utf8');
+        SongList = JSON.parse(data);
+        console.log(`Loaded ${SongList.length} songs from playlist.json`);
     }
+} catch (err) {
+    console.error('Failed to load playlist:', err.message);
 }
 
 function downloadFile(url, saveAs) {
@@ -169,8 +174,7 @@ function downloadFile(url, saveAs) {
 app.post("/song/preload", async(req, res) => {
     let url = req.body.url || "",
         md5 = crypto.createHash('md5'),
-        hash = md5.update(url).digest('hex'),
-        cachePath = path.join(webRoot, "cache");
+        hash = md5.update(url).digest('hex');
 
     if (url.length <= 0) {
         await res.send(JSON.stringify({
@@ -179,15 +183,8 @@ app.post("/song/preload", async(req, res) => {
         }))
     }
 
-    if (!fs.existsSync(cachePath)) {
-        fs.mkdirSync(cachePath, {
-            recursive: true,
-            mode: 0o777
-        });
-    }
-
     try {
-        await downloadFile(url, path.join(cachePath, hash))
+        await downloadFile(url, path.join(cacheDir, hash))
     } catch (err) {
         await res.send(JSON.stringify({
             status: false,
@@ -206,11 +203,13 @@ app.post("/song/preload", async(req, res) => {
 
 app.post('/song/save', async (req, res) => {
     SongList = JSON.parse(req.body.list || "[]") || [];
+
     try {
-        fs.writeFileSync(playlistFile, JSON.stringify(SongList));
-    } catch (e) {
-        console.error('Failed to save playlist:', e);
+        fs.writeFileSync(playlistFile, JSON.stringify(SongList, null, 2), 'utf8');
+    } catch (err) {
+        console.error('Failed to save playlist:', err.message);
     }
+
     await res.send(JSON.stringify(SongList))
 });
 
@@ -218,7 +217,9 @@ app.get("/song/get", async (req, res) => {
     await res.send(SongList)
 })
 
-const io = new Server(server, { path: "/io", cors: { origin: "*" } });
+const io = new SocketIO(server,{
+    path: "/io"
+});
 io.on("connection", (socket) => {
 
     socket.join("chat");
@@ -239,7 +240,6 @@ app.use(express.static(webRoot));
 if (require && require.main === module) {
     cli.info(`web root: ${webRoot}`);
     cli.ok(`server listen on: http://${options.host}:${options.port}`);
-    loadPlaylist();
     server.listen(options.port, options.host);
 }
 

@@ -1,4 +1,4 @@
-﻿const js = require('@eslint/js');
+const js = require('@eslint/js');
 const pluginVue = require('eslint-plugin-vue');
 const globals = require('globals');
 

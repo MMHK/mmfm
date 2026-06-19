@@ -105,6 +105,7 @@ devDependencies:
   eslint@^9
   eslint-plugin-vue@^9
   @babel/eslint-parser@^7
+  dotenv@^17
 ```
 
 **鏇存柊 script**锛?```json
@@ -153,6 +154,8 @@ registry=https://registry.npmmirror.com
 #### `rspack.config.js` 鑽夋
 
 ```js
+require('dotenv').config();
+const rspack = require('@rspack/core');
 const path = require('path');
 const { VueLoaderPlugin } = require('rspack-vue-loader');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -220,6 +223,9 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
       filename: 'index.html'
+    }),
+    new rspack.DefinePlugin({
+      'process.env.LOCAL_PLAYER_MODE': JSON.stringify(process.env.LOCAL_PLAYER_MODE || 'false')
     })
   ],
 

@@ -15,6 +15,7 @@ MMFM 鈥?intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO back
 - **Rspack** (frontend via rspack.config.js; backend via rspack.config.service.js)
 - **SCSS** (`sass` implementation, dart sass)
 - **yarn** (鍞竴 package manager锛宯pm 宸茬鐢?via `preinstall: only-allow yarn`)
+- **dotenv** (devDependency, for `.env` file loading in rspack.config.js)
 
 ---
 
@@ -64,6 +65,7 @@ After making changes, run in this order:
 - **Provider modules**: `src/services/provider/{netease,qq,migu,kuwo,kugou,bilibili}.js`
 - **Event bus**: `src/services/Bus.js` (Vue EventBus for cross-component communication)
 - Backend has its own `src/services/package.json` and `Dockerfile` for standalone Docker deployment
+- **Local player mode**: `Player.vue` supports browser-side HTML5 Audio playback when `LOCAL_PLAYER_MODE=true` (build-time env via DefinePlugin)
 
 ### Key gotchas
 
@@ -72,9 +74,17 @@ After making changes, run in this order:
 - **splitChunks disabled** in rspack.config.js 鈥?single JS bundle output.
 - **Backend bundling**: rspack.config.service.js targets `node`, uses `externalsPresets: { node: true }`. Copies `swagger.json`, `Dockerfile`, and `package.json` to `dist/`.
 - **Tests are live integration tests** hitting real music APIs with timeouts up to 3 hours. No mocks. No test for `mocha.webserice.test.js` exists despite it being the `yarn test` target 鈥?run individual provider test files directly.
-- **Song list is in-memory only** 鈥?no persistence; lost on server restart.
+- **Song list persistence**: Playlist is saved to `cache/playlist.json` (file-based). Loaded on server startup, written on each `/song/save` request.
 - **No TypeScript, no CSS modules**. Styles use SCSS (`sass` implementation, not `node-sass`).
 - **Docker base**: `node:18-alpine`.
+
+### Environment Variables
+- **`.env` file** at project root, loaded by `dotenv` in `rspack.config.js`
+- Injected at build time via `rspack.DefinePlugin` as `process.env.VAR_NAME`
+- Current variables:
+  - `LOCAL_PLAYER_MODE` (default `false`): When `true`, Player.vue uses HTML5 `<audio>` for browser-side playback instead of Socket.IO remote control
+- `.env` is in `.gitignore` — each developer/deployment maintains their own
+- Changes require rebuild (`yarn build`) or dev server restart (`yarn serve`)
 
 ---
 

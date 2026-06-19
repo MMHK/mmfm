@@ -1,4 +1,4 @@
-﻿const path = require('path');
+const path = require('path');
 const { CopyRspackPlugin } = require('@rspack/core');
 
 module.exports = {
@@ -33,7 +33,8 @@ module.exports = {
       patterns: [
         { from: 'src/services/swagger.json', to: '.' },
         { from: 'src/services/Dockerfile', to: '.' },
-        { from: 'src/services/package.json', to: '.' }
+        { from: 'src/services/package.json', to: '.' },
+        { from: 'src/services/.dockerignore', to: '.' }
       ]
     })
   ],

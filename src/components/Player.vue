@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="player-wrap fm">
     <div id="ablums" class="fm-ablums">
       <div class="fm-ablums-photo">
@@ -32,16 +32,16 @@
       </div>
       <div class="fm-tools clear">
         <input id="url" name="url" class="fm-add-url" type="text" v-model="playURL">
-        <a v-on:click="searchSong" id="add" title="娣诲姞" class="btn">
+        <a v-on:click="searchSong" id="add" title="添加" class="btn">
           <i class="iconfont icon-xinzeng"></i>
         </a>
-        <a v-on:click="searchSong" id="search" title="鎼滅储" class="btn">
+        <a v-on:click="searchSong" id="search" title="搜索" class="btn">
           <i class="iconfont icon-search"></i>
         </a>
       </div>
       <div class="fm-list-title">
-        <i class="iconfont icon-list"></i> 姝屾洸鍒楄〃
-        <a v-on:click="checkAll" class="btn btn-select-all" title="鍏ㄩ€?>
+        <i class="iconfont icon-list"></i> 歌曲列表
+        <a v-on:click="checkAll" class="btn btn-select-all" title="全选">
           <i class="iconfont icon-select-all"></i>
         </a>
       </div>
@@ -67,7 +67,7 @@
                   v-on:click="PlayItem(index, $event)"
                   class="btn play"
                   :data-src="item.src"
-                  title="鎾斁"
+                  title="播放"
                 >
                   <i class="iconfont icon-play"></i>
                 </a>
@@ -82,10 +82,10 @@
       </div>
       <div>
         <a v-if="ckecking" v-on:click="DelItem" class="btn btn-delete">
-          <i class="iconfont icon-close"></i> 鍒犻櫎
+          <i class="iconfont icon-close"></i> 删除
         </a>
       </div>
-      <a class="fm-intro-btn" target="_blank" alt="甯姪" title="甯姪" href="https://github.com/MMHK/mmfm">
+      <a class="fm-intro-btn" target="_blank" alt="帮助" title="帮助" href="https://github.com/MMHK/mmfm">
         <i class="iconfont icon-Info"></i> v2.7
       </a>
     </div>
@@ -117,9 +117,8 @@ export default {
       album: {
         cover: "image/default-cover.png",
         name: "MixMedia FM",
-        url: false,
-
-        author: false
+        src: "",
+        author: ""
       },
       playingClass: [],
       playlistCheckClass: [],
@@ -168,7 +167,7 @@ export default {
     EventBus.on(ChatService.CMD.ready, () => {
       EventBus.on(ChatService.CMD.player.playing, args => {
         let item = this.playlist.findIndex(val => {
-            return val.src == args[0].url;
+            return val.src == args[0].src;
         })
 
         this.PlayItem(item || 0);
@@ -193,7 +192,7 @@ export default {
 
       EventBus.on(ChatService.CMD.playlist.current, (args) => {
          let item = this.playlist.findIndex(val => {
-            return val.src == args[0].url;
+            return val.src == args[0].src;
         })
 
         this.PlayItem(item || 0);
@@ -229,7 +228,7 @@ export default {
       this.playingClass[index] = "playing";
 
       if (process.env.LOCAL_PLAYER_MODE === 'true') {
-        this.audio.src = this.album.url || this.playlist[index].src;
+        this.audio.src = this.album.src || this.playlist[index].src;
         this.audio.play();
         return;
       }
@@ -268,6 +267,11 @@ export default {
       this.playlist = playlist;
       this.ckecking = false;
 
+      const playingIndex = this.playlist.findIndex(val => val.src === this.album.src);
+      if (playingIndex !== -1) {
+        this.playingID = playingIndex;
+      }
+
       this.sortPlayList();
     },
 
@@ -302,7 +306,7 @@ export default {
         json.forEach((val, i) => {
           this.playingClass[i] = "";
           this.playlistCheckClass[i] = false;
-          if (!flag && json[i].name == this.album.name) {
+          if (!flag && json[i].src === this.album.src) {
             flag = true;
             this.playingClass[i] = "playing";
             this.playingID = i;
@@ -322,9 +326,14 @@ export default {
           playlistCheckClass[i] = false;
         });
 
+        const playingIndex = this.playlist.findIndex(val => val.src === this.album.src);
+        if (playingIndex !== -1) {
+          this.playingID = playingIndex;
+          playingClass[playingIndex] = "playing";
+        }
+
         this.playingClass = playingClass;
         this.playlistCheckClass = playlistCheckClass;
-        this.playingClass[this.playingID] = "playing";
 
         chat.playlist().update();
       });

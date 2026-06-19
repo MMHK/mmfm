@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div id="app">
     <div class="container">
       <player-panel></player-panel>

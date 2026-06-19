@@ -21,7 +21,4 @@ yarn-error.log*
 *.sw*
 /*.cmd
 /package-lock.json
-/yarn.lock
 /tests/temp
-/*.lock
-/dist/yarn.lock
