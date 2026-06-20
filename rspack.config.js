@@ -2,7 +2,6 @@ require('dotenv').config();
 const rspack = require('@rspack/core');
 const path = require('path');
 const { VueLoaderPlugin } = require('rspack-vue-loader');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -64,7 +63,7 @@ module.exports = {
 
   plugins: [
     new VueLoaderPlugin(),
-    new HtmlWebpackPlugin({
+    new rspack.HtmlRspackPlugin({
       template: './public/index.html',
       filename: 'index.html'
     }),
