@@ -1,7 +1,6 @@
 import express, { type Request, type Response, type NextFunction } from "express";
 import cli from "cli";
 import bodyParser from "body-parser";
-import musicApi from "./MusieApi";
 import swaggerUi from "swagger-ui-express";
 import http from "http";
 import { Server as SocketIO } from "socket.io";
@@ -9,13 +8,16 @@ import swaggerDocument from "./swagger.json";
 import path from "path";
 import crypto from "crypto";
 import fs from "fs";
-import { FetchStream } from "fetch";
+import os from "os";
+import flatCache from "flat-cache";
 import dotenv from "dotenv";
 import { logger } from "./logger";
+import { resolve, search, download, CookieError, type YtDlpMetadata } from "./YtDlpService";
+import { cookieStatus, isSupportedPlatform, saveCookie, type CookiePlatform } from "./CookieService";
 
 const app = express();
 
-dotenv.config({ override: true });
+dotenv.config({ override: true, quiet: true });
 
 const options = cli.parse({
   host: ["b", "web server listen on address", "ip", process.env.HOST || "0.0.0.0"],
@@ -25,9 +27,11 @@ const options = cli.parse({
 });
 
 const webRoot: string = options.webroot;
+const cacheDir = path.join(webRoot, "cache");
+const trackCache = flatCache.load("yt-track-cache", os.tmpdir());
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false, limit: "10mb" }));
+app.use(bodyParser.json({ limit: "10mb" }));
 
 app.use(
   "/swagger",
@@ -40,93 +44,106 @@ app.use(
   swaggerUi.setup()
 );
 
+const isVideoUrl = /^(https?:\/\/)?(www\.youtube\.com|youtu\.be|www\.bilibili\.com|m\.bilibili\.com)\//i;
+
+function mapExtractor(extractor: string): "youtube" | "bilibili" {
+  if (extractor.includes("youtube") || extractor.includes("Youtube")) return "youtube";
+  return "bilibili";
+}
+
+function toSongFormat(meta: YtDlpMetadata) {
+  return {
+    id: meta.webpage_url,
+    name: meta.title,
+    artists: [{ name: meta.uploader }],
+    album: { cover: meta.thumbnail || "" },
+    link: meta.webpage_url,
+    vendor: mapExtractor(meta.extractor),
+  };
+}
+
+function cacheTrack(meta: YtDlpMetadata) {
+  trackCache.setKey(meta.webpage_url, meta);
+  trackCache.save();
+}
+
+function groupByVendor(songs: ReturnType<typeof toSongFormat>[]) {
+  const groups: Record<string, { total: number; songs: typeof songs }> = {
+    youtube: { total: 0, songs: [] },
+    bilibili: { total: 0, songs: [] },
+  };
+  for (const song of songs) {
+    groups[song.vendor].songs.push(song);
+    groups[song.vendor].total++;
+  }
+  return groups;
+}
+
 app.get("/api/song/search", async (req: Request, res: Response) => {
-  const search = req.query.keyword as string;
-  logger.debug("GET /api/song/search", { keyword: search });
+  const keyword = req.query.keyword as string;
+  logger.debug("GET /api/song/search", { keyword });
 
-  if (!search) {
-    res.status(400).send({
-      status: false,
-      error: "参数错误",
-    });
+  if (!keyword) {
+    res.status(400).send({ status: false, error: "参数错误" });
     return;
   }
-  let data;
+
   try {
-    data = await musicApi.search(search);
+    if (isVideoUrl.test(keyword)) {
+      const meta = await resolve(keyword);
+      cacheTrack(meta);
+      res.send({ status: true, data: groupByVendor([toSongFormat(meta)]) });
+    } else {
+      const results = await search(keyword);
+      results.forEach(cacheTrack);
+      res.send({ status: true, data: groupByVendor(results.map(toSongFormat)) });
+    }
   } catch (e) {
-    res.status(500).send({
-      status: false,
-      error: e,
-    });
-    return;
+    if (e instanceof CookieError) {
+      const need = [e.platform];
+      res.status(400).send({ status: false, cookieNeed: need, error: `Cookie 驗證失敗: ${e.platform}` });
+      return;
+    }
+    res.status(500).send({ status: false, error: (e as Error).message });
   }
-
-  res.send({
-    status: true,
-    data,
-  });
 });
 
 app.get("/api/song/detail", async (req: Request, res: Response) => {
-  const vendor = req.query.vendor;
-  const id = req.query.id || 0;
-  logger.debug("GET /api/song/detail", { vendor, id });
+  const id = req.query.id as string;
+  logger.debug("GET /api/song/detail", { id });
 
-  if (!id || !vendor) {
-    res.status(400).send({
-      status: false,
-      error: "参数错误",
-    });
+  if (!id) {
+    res.status(400).send({ status: false, error: "参数错误" });
     return;
   }
-  let data;
-  try {
-    data = await musicApi.song(id as string);
-  } catch (e) {
-    res.status(500).send({
-      status: false,
-      error: e,
-    });
-    return;
+
+  const cached = trackCache.getKey(id) as YtDlpMetadata | undefined;
+  if (cached) {
+    res.send({ status: true, data: toSongFormat(cached) });
+  } else {
+    res.status(404).send({ status: false, error: "not found" });
   }
-  res.send({
-    status: true,
-    data,
-  });
 });
 
 app.get("/api/song/url", async (req: Request, res: Response) => {
   const vendor = req.query.vendor;
-  const id = req.query.id || 0;
+  const id = req.query.id as string;
   logger.debug("GET /api/song/url", { vendor, id });
 
   if (!id || !vendor) {
-    res.status(400).send({
-      status: false,
-      error: "参数错误",
-    });
-    return;
-  }
-  let data;
-  try {
-    data = await musicApi.url(id as string);
-  } catch (e) {
-    res.status(500).send({
-      status: false,
-      error: e,
-    });
+    res.status(400).send({ status: false, error: "参数错误" });
     return;
   }
 
-  res.send({
-    status: true,
-    data,
-  });
+  const cached = trackCache.getKey(id) as YtDlpMetadata | undefined;
+  if (cached) {
+    res.send({ status: true, data: cached.webpage_url });
+  } else {
+    res.status(404).send({ status: false, error: "not found" });
+  }
 });
 
 let SongList: unknown[] = [];
-const cacheDir = path.join(webRoot, "cache");
 const playlistFile = path.join(cacheDir, "playlist.json");
 
 if (!fs.existsSync(cacheDir)) {
@@ -143,81 +160,33 @@ try {
   logger.error("Failed to load playlist:", (err as Error).message);
 }
 
-function downloadFile(url: string, saveAs: string): Promise<void> {
-  logger.debug("Downloading file:", url);
-  const fileStream = fs.createWriteStream(saveAs);
-
-  return new Promise((resolve, reject) => {
-    let headers: Record<string, string> = {
-      Accept:
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-      "Accept-Encoding": "gzip, deflate, br",
-      "Accept-Language":
-        "en-US,en;q=0.9,fr;q=0.8,ro;q=0.7,ru;q=0.6,la;q=0.5,pt;q=0.4,de;q=0.3",
-      "Cache-Control": "max-age=0",
-      Connection: "keep-alive",
-      "Upgrade-Insecure-Requests": "1",
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36",
-    };
-    if (url.includes("bilivideo.com")) {
-      headers["Referer"] = "https://www.bilibili.com/";
-    }
-    const req = new FetchStream(url, {
-      headers,
-    });
-
-    req.on("meta", (meta: { status: number }) => {
-      if (meta.status != 200) {
-        reject();
-      }
-    });
-    req.on("end", () => {
-      logger.debug(`The file is finished downloading.`);
-      resolve();
-    });
-    req.on("error", (error: unknown) => {
-      reject(error);
-    });
-
-    req.pipe(fileStream);
-  });
-}
 
 app.post("/song/preload", async (req: Request, res: Response) => {
-  let url: string = req.body.url || "";
-  let md5 = crypto.createHash("md5");
-  let hash = md5.update(url).digest("hex");
+  const url: string = req.body.url || "";
 
-  if (url.length <= 0) {
-    await res.send(
-      JSON.stringify({
-        status: 0,
-        url: "",
-      })
-    );
-  }
-
-  try {
-    await downloadFile(url, path.join(cacheDir, hash));
-  } catch (err) {
-    await res.send(
-      JSON.stringify({
-        status: false,
-        error: err,
-      })
-    );
+  if (!url) {
+    res.send(JSON.stringify({ status: 0, url: "" }));
     return;
   }
 
-  let host = req.get("host");
+  const hash = crypto.createHash("md5").update(url).digest("hex");
+  const localPath = path.join(cacheDir, hash);
 
-  await res.send(
-    JSON.stringify({
-      status: 1,
-      url: `http://${host}/cache/${hash}`,
-    })
-  );
+  if (fs.existsSync(localPath)) {
+    const host = req.get("host");
+    res.send(JSON.stringify({ status: 1, url: `http://${host}/cache/${hash}` }));
+    return;
+  }
+
+  try {
+    await download(url, localPath);
+  } catch (err) {
+    res.send(JSON.stringify({ status: false, error: (err as Error).message }));
+    return;
+  }
+
+  const host = req.get("host");
+  res.send(JSON.stringify({ status: 1, url: `http://${host}/cache/${hash}` }));
 });
 
 app.post("/song/save", async (req: Request, res: Response) => {
@@ -266,33 +235,54 @@ io.on("connection", (socket) => {
   });
 });
 
+app.post("/api/cookies/:platform", (req: Request, res: Response) => {
+  const platform = req.params.platform;
+  if (!isSupportedPlatform(platform)) {
+    res.status(400).send({ status: false, error: `Unsupported platform: ${platform}` });
+    return;
+  }
+  const content = req.body?.content;
+  if (!content || typeof content !== "string" || !content.trim()) {
+    res.status(400).send({ status: false, error: "参数错误: content 必须为非空字符串" });
+    return;
+  }
+  try {
+    const result = saveCookie(platform as CookiePlatform, content);
+    res.send({ status: true, platform, updatedAt: result.updatedAt });
+  } catch (err) {
+    res.status(500).send({ status: false, error: (err as Error).message });
+  }
+});
+
+app.get("/api/cookies/status", (_req: Request, res: Response) => {
+  res.send(cookieStatus());
+});
+
 app.use(express.static(webRoot));
 
-if (require && require.main === module) {
-  server.listen(options.port, options.host, () => {
-    logger.info("=== MMFM Server Started ===");
-    logger.info(`Host     : ${options.host}`);
-    logger.info(`Port     : ${options.port}`);
-    logger.info(`Web Root : ${webRoot}`);
-    logger.info(`Log Level: ${options.logLevel}`);
-    logger.info(`Cache Dir: ${cacheDir}`);
-    logger.info(`Playlist : ${playlistFile} (${SongList.length} songs)`);
-    logger.info(`PID      : ${process.pid}`);
+server.listen(options.port, options.host, () => {
+  logger.info("=== MMFM Server Started ===");
+  logger.info(`Host     : ${options.host}`);
+  logger.info(`Port     : ${options.port}`);
+  logger.info(`Web Root : ${webRoot}`);
+  logger.info(`Log Level: ${options.logLevel}`);
+  logger.info(`Cache Dir: ${cacheDir}`);
+  logger.info(`Playlist : ${playlistFile} (${SongList.length} songs)`);
+  logger.info(`PID      : ${process.pid}`);
+});
+
+function gracefulShutdown(signal: string) {
+  logger.info(`Received ${signal}, shutting down gracefully...`);
+  io.close();
+  server.close(() => {
+    logger.info("Server closed");
+    process.exit(0);
   });
-
-  function gracefulShutdown(signal: string) {
-    logger.info(`Received ${signal}, shutting down gracefully...`);
-    io.close();
-    server.close(() => {
-      logger.info("Server closed");
-      process.exit(0);
-    });
-    setTimeout(() => {
-      logger.error("Forced shutdown after timeout");
-      process.exit(1);
-    }, 5000);
-  }
-
-  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  setTimeout(() => {
+    logger.error("Forced shutdown after timeout");
+    process.exit(1);
+  }, 5000);
 }
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));

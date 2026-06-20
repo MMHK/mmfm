@@ -1,24 +1,24 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "This music API for qq netease xiami",
+    "description": "Intranet music radio API — search, resolve, and stream YouTube/Bilibili tracks via yt-dlp.",
     "version": "1.0.0",
-    "title": "Music API for QQ NetEase Xiami",
-    "license": {
-      "name": "Apache 2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-    }
+    "title": "MMFM Music API"
   },
   "host": "localhost",
   "basePath": "/",
+  "schemes": [
+    "http"
+  ],
   "tags": [
     {
       "name": "song",
-      "description": "song of QQ NetEase Xiami"
+      "description": "Song search, detail, preload, and playlist management"
+    },
+    {
+      "name": "cookies",
+      "description": "yt-dlp cookie file management"
     }
-  ],
-  "schemes": [
-    "http"
   ],
   "paths": {
     "/api/song/search": {
@@ -27,7 +27,6 @@
           "song"
         ],
         "summary": "Search song of all platform",
-        "description": "",
         "produces": [
           "application/json"
         ],
@@ -38,21 +37,28 @@
             "type": "string",
             "description": "Name of song",
             "required": true
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "type": "string",
-            "description": "offset of page",
-            "required": false
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SearchResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
-        },
-        "security": []
+        }
       }
     },
     "/api/song/detail": {
@@ -67,22 +73,27 @@
         "parameters": [
           {
             "in": "query",
-            "name": "vendor",
-            "type": "string",
-            "description": "platform",
-            "required": true
-          },
-          {
-            "in": "query",
             "name": "id",
-            "type": "number",
-            "description": "ID of song",
+            "type": "string",
+            "description": "Track URL or ID (string)",
             "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/DetailResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Track not found"
           }
         }
       }
@@ -107,14 +118,146 @@
           {
             "in": "query",
             "name": "id",
-            "type": "number",
+            "type": "string",
             "description": "ID of song",
             "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/UrlResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Track not found"
+          }
+        }
+      }
+    },
+    "/api/cookies/status": {
+      "get": {
+        "tags": [
+          "cookies"
+        ],
+        "summary": "get cookie file status for all supported platforms",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "youtube": {
+                  "type": "object",
+                  "properties": {
+                    "exists": {
+                      "type": "boolean"
+                    },
+                    "updatedAt": {
+                      "type": "number",
+                      "description": "mtimeMs or null"
+                    }
+                  }
+                },
+                "bilibili": {
+                  "type": "object",
+                  "properties": {
+                    "exists": {
+                      "type": "boolean"
+                    },
+                    "updatedAt": {
+                      "type": "number",
+                      "description": "mtimeMs or null"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cookies/{platform}": {
+      "post": {
+        "tags": [
+          "cookies"
+        ],
+        "summary": "upload/overwrite a cookie file for a platform",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "path",
+            "type": "string",
+            "enum": [
+              "youtube",
+              "bilibili"
+            ],
+            "description": "Target platform",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "content"
+              ],
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "Netscape cookies.txt content"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "boolean"
+                },
+                "platform": {
+                  "type": "string"
+                },
+                "updatedAt": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (unsupported platform or empty content)",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           }
         }
       }
@@ -126,23 +269,39 @@
         ],
         "summary": "save play list",
         "consumes": [
-          "application/x-www-form-urlencoded"
+          "application/json"
         ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "in": "formData",
-            "type": "string",
-            "name": "list",
-            "description": "playlist JSON",
-            "required": true
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "list"
+              ],
+              "properties": {
+                "list": {
+                  "type": "string",
+                  "description": "JSON-encoded playlist array"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Song"
+              }
+            }
           }
         }
       }
@@ -158,7 +317,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Song"
+              }
+            }
           }
         }
       }
@@ -170,24 +335,205 @@
         ],
         "summary": "preload a song url, conver to local url",
         "consumes": [
-          "application/x-www-form-urlencoded"
+          "application/json"
         ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "in": "formData",
-            "type": "string",
-            "name": "url",
-            "description": "audio file url",
-            "required": true
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "url"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "Audio URL to preload"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PreloadResponse"
+            }
           }
+        }
+      }
+    }
+  },
+  "x-websocket": {
+    "description": "Socket.IO WebSocket endpoint. Connect at ws://<host>/io using the Socket.IO protocol.",
+    "path": "/io",
+    "events": {
+      "client-to-server": {
+        "msg": {
+          "description": "Send a chat message (string) to the server; broadcasted to all other clients in the 'chat' room.",
+          "payload": "string"
+        },
+        "disconnect": {
+          "description": "Fired when the client disconnects."
+        },
+        "error": {
+          "description": "Fired on client-side error.",
+          "payload": "string"
+        }
+      },
+      "server-to-client": {
+        "msg": {
+          "description": "Chat message broadcasted to connected clients.",
+          "payload": "string"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Artist": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "Album": {
+      "type": "object",
+      "properties": {
+        "cover": {
+          "type": "string",
+          "description": "Cover image URL"
+        }
+      }
+    },
+    "Song": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Track URL or ID"
+        },
+        "name": {
+          "type": "string",
+          "description": "Track title"
+        },
+        "artists": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Artist"
+          }
+        },
+        "album": {
+          "$ref": "#/definitions/Album"
+        },
+        "link": {
+          "type": "string",
+          "description": "Link to original page"
+        },
+        "vendor": {
+          "type": "string",
+          "enum": [
+            "youtube",
+            "bilibili"
+          ]
+        }
+      }
+    },
+    "SongGroup": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer"
+        },
+        "songs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Song"
+          }
+        }
+      }
+    },
+    "SearchResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "youtube": {
+              "$ref": "#/definitions/SongGroup"
+            },
+            "bilibili": {
+              "$ref": "#/definitions/SongGroup"
+            }
+          }
+        }
+      }
+    },
+    "DetailResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "boolean"
+        },
+        "data": {
+          "$ref": "#/definitions/Song"
+        }
+      }
+    },
+    "UrlResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "string",
+          "description": "Track webpage URL"
+        }
+      }
+    },
+    "PreloadResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ],
+          "description": "1=success, 0=no url/error"
+        },
+        "url": {
+          "type": "string",
+          "description": "Local cache URL (present when status=1)"
+        },
+        "error": {
+          "type": "string",
+          "description": "Error message (present on failure)"
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "boolean",
+          "enum": [
+            false
+          ]
+        },
+        "error": {
+          "type": "string"
         }
       }
     }
