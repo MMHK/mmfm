@@ -26,7 +26,7 @@
     </div>
   </div>
 </template>
-<script>
+<script lang="ts">
 import SearchService from "../services/SearchService"
 import SongService from "../services/SongService"
 import { EventBus } from "../services/Bus"

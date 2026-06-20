@@ -1,46 +1,44 @@
-const axios = require("axios").create({
+import axiosBase from "axios";
+import path from "path";
+import fs from "fs";
+import asyncLib from "async";
+
+import axiosCookieJarSupport from "axios-cookiejar-support";
+import * as tough from "tough-cookie";
+
+const axios = axiosBase.create({
     timeout: 10000,
 });
-const path = require("path");
-const fs = require("fs");
-const async = require("async");
 
-const axiosCookieJarSupport = require('axios-cookiejar-support').default;
-const tough = require('tough-cookie');
-
-axiosCookieJarSupport(axios);
+(axiosCookieJarSupport as any)(axios);
 const cookieJar = new tough.CookieJar();
 
-axios.interceptors.request.use((config) => {
+axios.interceptors.request.use((config: any) => {
     config.headers["User-Agent"] = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36';
     config.jar = cookieJar;
     config.withCredentials = true;
     config.headers["Referer"] = 'http://www.kugou.com/';
 
-
     return config;
 });
 
-axios.interceptors.response.use((response) => {
-    // console.dir(response.data.data.lists);
-    // console.dir(response.config);
+axios.interceptors.response.use((response: any) => {
     return response;
-}, (error) => {
+}, (error: any) => {
     console.error(error);
 
     return Promise.reject(error);
 });
 
-
 function isElectron() {
     return false;
 }
 
-function cookieGet(cookie, callback) {
+function cookieGet(cookie: any, callback: any) {
     const url = cookie.url || cookie.domain;
     const name = cookie.name;
-    cookieJar.getCookies(url, {}, (err, cookies) => {
-        const target = Array.from(cookies).find((c) => {
+    cookieJar.getCookies(url, {}, (err: any, cookies: any) => {
+        const target = Array.from(cookies).find((c: any) => {
             return name && c.key == name;
         });
 
@@ -48,12 +46,12 @@ function cookieGet(cookie, callback) {
     });
 }
 
-function getParameterByName(name, url) {
-    if (!url) url = window.location.href;
-    name = name.replace(/[\[\]]/g, '\\$&'); // eslint-disable-line no-useless-escape
+function getParameterByName(name: string, url?: string) {
+    if (!url) url = (globalThis as any).window?.location?.href;
+    name = name.replace(/[[\]]/g, '\\$&');
     const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`);
 
-    const results = regex.exec(url);
+    const results = regex.exec(url!);
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
@@ -61,16 +59,16 @@ function getParameterByName(name, url) {
 
 function wrapFunc() {
     const jsFile = path.resolve("node_modules", "listen1_chrome_extension/js/provider/kugou.js");
-    const body = fs.readFileSync(jsFile);
+    const body: any = fs.readFileSync(jsFile);
 
     const func = new Function("async", "axios", "getParameterByName", "isElectron", "cookieGet", `${body} return kugou`);
 
-    return func(async, axios, getParameterByName, isElectron, cookieGet);
+    return func(asyncLib, axios, getParameterByName, isElectron, cookieGet);
 }
 
 const kugou = wrapFunc();
 
-exports.search = (key) => {
+export const search = (key: string): Promise<any> => {
     const keywords = encodeURI(encodeURI(key));
 
     return new Promise(resolve => {
@@ -79,8 +77,10 @@ exports.search = (key) => {
     })
 };
 
-exports.song = (result) => {
+export const song = (result: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         kugou.bootstrap_track(result, resolve, reject);
     })
 };
+
+export default { search, song };

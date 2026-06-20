@@ -1,8 +1,8 @@
 (() => {
 "use strict";
 var __webpack_modules__ = ({
-849(module) {
-module.exports = require("./src/services/WebService.js");
+419(module) {
+module.exports = require("./src/services/WebService.ts");
 
 },
 
@@ -41,6 +41,6 @@ __webpack_require__.ruid = "bundler=rspack@1.7.12";
 // startup
 // Load entry module and return exports
 // This entry module used 'module' so it can't be inlined
-var __webpack_exports__ = __webpack_require__(849);
+var __webpack_exports__ = __webpack_require__(419);
 })()
 ;

@@ -1,9 +1,32 @@
-import { io } from 'socket.io-client';
-import {
-    EventBus
-} from "./Bus";
+import { io, type Socket } from 'socket.io-client';
+import { EventBus } from "./Bus";
+import type { WSEvent } from "./types/ws-events";
+import type { PlaylistItem } from "./SongService";
 
-const cmd = {
+interface ServerToClientEvents {
+    msg: (data: string) => void;
+}
+
+interface ClientToServerEvents {
+    msg: (data: string) => void;
+}
+
+interface CmdMap {
+    msg: string;
+    ready: string;
+    player: {
+        play: string;
+        pause: string;
+        continue: string;
+        playing: string;
+        current: string;
+    };
+    playlist: {
+        update: string;
+    };
+}
+
+const cmd: CmdMap = {
     msg: "msg",
     ready: "ready",
     player: {
@@ -18,26 +41,40 @@ const cmd = {
     }
 };
 
+interface PlayerControls {
+    play(album: PlaylistItem, index: number): void;
+    pause(): void;
+    continue(): void;
+    playing(album: PlaylistItem, index: number, time: number, total: number): void;
+    current(): void;
+}
 
-export default class {
-    static get CMD() {
+interface PlaylistControls {
+    update(): void;
+}
+
+export default class ChatService {
+    private API: string;
+    private client: Socket<ServerToClientEvents, ClientToServerEvents>;
+
+    static get CMD(): CmdMap {
         return cmd;
     }
 
     constructor() {
-        this.API = global.WS_URL || "";
+        this.API = (globalThis as any).WS_URL || "";
 
-        this.client = io(this.API, {
+        this.client = io<ServerToClientEvents, ClientToServerEvents>(this.API, {
             path: "/io",
             transports: ['websocket', 'polling']
         })
 
         this.client.on("connect", () => {
-            this.client.on(cmd.msg, function (data) {
-                var args = JSON.parse(data);
-                if (args) {
-                    var jcmd = args["cmd"] || "",
-                        jargs = args["args"] || false;
+            this.client.on(cmd.msg, function (data: string) {
+                const evt: WSEvent = JSON.parse(data);
+                if (evt) {
+                    var jcmd = evt.cmd || "",
+                        jargs = "args" in evt ? evt.args : false;
                     EventBus.emit(jcmd, jargs);
                 }
             });
@@ -46,7 +83,7 @@ export default class {
         });
     }
 
-    playlist() {
+    playlist(): PlaylistControls {
         let client = this.client
 
         return {
@@ -58,13 +95,11 @@ export default class {
         }
     }
 
-    player() {
-
+    player(): PlayerControls {
         let client = this.client
 
         return {
-
-            play(album, index) {
+            play(album: PlaylistItem, index: number) {
                 client.emit(cmd.msg, JSON.stringify({
                     cmd: cmd.player.play,
                     args: [album, index]
@@ -77,13 +112,13 @@ export default class {
                 }));
             },
 
-            continue () {
+            continue() {
                 client.emit(cmd.msg, JSON.stringify({
                     cmd: cmd.player.continue
                 }));
             },
 
-            playing(album, index, time, total) {
+            playing(album: PlaylistItem, index: number, time: number, total: number) {
                 client.emit(cmd.msg, JSON.stringify({
                     cmd: cmd.player.playing,
                     args: [album, index, time, total]

@@ -3,7 +3,7 @@ const { CopyRspackPlugin } = require('@rspack/core');
 
 module.exports = {
   mode: 'production',
-  entry: './src/services/WebService.js',
+  entry: './src/services/WebService.ts',
   target: 'node',
 
   output: {
@@ -17,6 +17,23 @@ module.exports = {
   },
 
   externalsPresets: { node: true },
+  resolve: {
+    extensions: ['.ts', '.js', '.json']
+  },
+  module: {
+    rules: [
+      {
+        test: /\.[jt]s$/,
+        use: [{
+          loader: 'builtin:swc-loader',
+          options: {
+            jsc: { parser: { syntax: 'typescript' } }
+          }
+        }],
+        type: 'javascript/auto'
+      }
+    ]
+  },
   externals: [
     function({ request }, callback) {
       const allowlist = [/^core-js/, /^@babel/, /webpack/, /^regenerator-runtime/,

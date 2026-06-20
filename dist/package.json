@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-      "service": "node ./service.js -b $HOST -d $ROOT -p $PORT"
+      "service": "node ./service.js -b $HOST -d $WEBROOT -p $PORT"
     },
     "dependencies": {
       "encoding": "^0.1.13",
@@ -17,13 +17,13 @@
       "axios-cookiejar-support": "^1.0.1",
       "tough-cookie": "^4.0.0",
       "url-polyfill": "^1.1.12",
-      "uuidjs": "^4.2.8",
       "body-parser": "^1.19.0",
       "cli": "^1.0.1",
       "express": "^4.17.1",
       "socket.io": "^4.7.0",
       "request": "^2.88.0",
       "core-js": "2",
-      "swagger-ui-express": "^4.0.7"
+      "swagger-ui-express": "^4.0.7",
+      "dotenv": "^17.4.2"
     }
 }

@@ -12,6 +12,7 @@ dist
 # Git
 .git
 .gitignore
+.gitattributes
 
 # IDE
 .idea
@@ -21,12 +22,14 @@ dist
 *.njsproj
 *.sln
 *.sw*
+*.sublime-*
 
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # OS
 .DS_Store
@@ -40,11 +43,20 @@ LICENSE
 # Tests
 tests
 
-# Misc
+# Config files
+.eslintrc.*
+eslint.config.*
+.prettierrc*
+tsconfig.json
+rspack.config.js
+rspack.config.service.js
+
+# Yarn
 .yarn
 .yarnrc.yml
 .npmrc
-.eslintrc.js
-eslint.config.js
-rspack.config.js
-rspack.config.service.js
+.pnp.*
+
+# Misc
+*.cmd
+*.bat

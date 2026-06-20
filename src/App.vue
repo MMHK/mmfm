@@ -9,7 +9,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Player from "./components/Player";
 import Search from "./components/Search";
 import { EventBus } from "./services/Bus";

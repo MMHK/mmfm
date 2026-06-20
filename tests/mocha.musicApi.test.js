@@ -13,7 +13,7 @@ describe("musicApi", function () {
     it("song", async function () {
         this.timeout(60000);
 
-        const result = await musicApi.song("mgtrack_60058621104");
+        const result = await musicApi.song("NE_0");
 
         console.dir(result);
     });
@@ -21,7 +21,7 @@ describe("musicApi", function () {
     it("url", async function () {
         this.timeout(60000);
 
-        const result = await musicApi.url("mgtrack_60058621104");
+        const result = await musicApi.url("NE_0");
 
         console.dir(result);
     });

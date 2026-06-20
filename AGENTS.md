@@ -39,6 +39,8 @@ MMFM — intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO back
 
 ## 2. Commands
 
+### Host (Direct)
+
 | Task | Command |
 |---|---|
 | Dev server (frontend, proxies to :8011) | `yarn serve` |
@@ -49,11 +51,36 @@ MMFM — intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO back
 | Tests (single provider) | `npx mocha tests/mocha.<provider>.test.js` |
 | Lint | `yarn lint` |
 
+### Docker (Preferred for build & test)
+
+Host has Docker installed. **Build and test operations SHOULD run inside Docker** for consistency and reproducibility.
+
+```bash
+# Build the Docker image (from src/services/ context)
+docker build -t mmfm src/services/
+
+# Build frontend inside container
+docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && yarn build"
+
+# Bundle backend inside container
+docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && yarn build:service"
+
+# Run lint inside container
+docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && yarn lint"
+
+# Run tests inside container (single provider)
+docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && npx mocha tests/mocha.<provider>.test.js"
+
+# Full production workflow (build image, then run)
+docker build -t mmfm src/services/
+docker run -d -p 8011:8011 --name mmfm mmfm
+```
+
 ### Verification Order
-After making changes, run in this order:
-1. `npx eslint src/` — lint check
-2. `yarn build` — frontend build verification
-3. `yarn build:service` — backend build verification
+After making changes, run in this order (prefer Docker when available):
+1. Lint check — `yarn lint` (Docker: `docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && yarn lint"`)
+2. Frontend build — `yarn build` (Docker: `docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && yarn build"`)
+3. Backend build — `yarn build:service` (Docker: `docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && yarn build:service"`)
 
 ---
 
@@ -76,7 +103,7 @@ After making changes, run in this order:
 - **Tests are live integration tests** hitting real music APIs with timeouts up to 3 hours. No mocks. No test for `mocha.webserice.test.js` exists despite it being the `yarn test` target — run individual provider test files directly.
 - **Song list persistence**: Playlist is saved to `cache/playlist.json` (file-based). Loaded on server startup, written on each `/song/save` request.
 - **No TypeScript, no CSS modules**. Styles use SCSS (`sass` implementation, not `node-sass`).
-- **Docker base**: `node:18-alpine`.
+- **Docker base**: `node:20-alpine`.
 
 ### Environment Variables
 - **`.env` file** at project root, loaded by `dotenv` in `rspack.config.js`
@@ -137,6 +164,7 @@ After making changes, run in this order:
 - Run individual provider tests: `npx mocha tests/mocha.<provider>.test.js`
 - Do NOT run `yarn test` — it points to a non-existent file
 - Tests require network access to real music APIs
+- **Prefer running tests inside Docker** (see Docker commands in Section 2)
 
 ---
 
@@ -146,6 +174,11 @@ After making changes, run in this order:
 Unless explicitly requested, do not create:
 - README.md (new version)
 - docs/, architecture.md, CHANGELOG.md, CONTRIBUTING.md
+
+### Exception: Plan Documents
+- Task plans saved to `docs/plans/` are **auto-generated** and do NOT require user confirmation.
+- Each plan file should use a short descriptive filename (e.g. `add-search-filter.md`).
+- Plan files are updated with task status and outcomes after completion.
 
 ### Documentation Principles
 - Keep inline comments minimal and focused on "why" not "what"
@@ -195,12 +228,13 @@ Before outputting any code, evaluate each item:
 ### 9.2 Workflow (Every Task MUST Follow This Order)
 
 ```
-1. PLAN       → Main agent creates task plan (in memory or in doc file if requested)
-2. USER REVIEW → Main agent presents plan to user and WAITS for explicit approval before proceeding
-3. DELEGATE   → Main agent spawns sub agent(s) to implement
-4. REVIEW     → Main agent spawns sub agent to review code against plan
-5. UPDATE     → Sub agent updates plan with task status (if doc-based plan)
-6. LOOP       → Main agent checks progress, spawns next task or loops until done
+1. PLAN       → Main agent creates task plan
+2. SAVE PLAN  → Main agent saves plan as MD file to `docs/plans/` directory (auto, no user confirmation needed; filename: short descriptive name e.g. `docs/plans/add-search-filter.md`)
+3. USER REVIEW → Main agent presents plan to user and WAITS for explicit approval before proceeding
+4. DELEGATE   → Main agent spawns sub agent(s) to implement
+5. REVIEW     → Main agent spawns sub agent to review code against plan
+6. UPDATE     → Sub agent updates plan MD file with task status and outcomes
+7. LOOP       → Main agent checks progress, spawns next task or loops until done
 ```
 
 **User Review Gate (Mandatory)**:

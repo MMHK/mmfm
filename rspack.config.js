@@ -7,7 +7,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 module.exports = {
-  entry: './src/main.js',
+  entry: './src/main.ts',
 
   output: {
     filename: 'static/js/[name].[contenthash:8].js',
@@ -17,7 +17,7 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.js', '.vue', '.json'],
+    extensions: ['.ts', '.js', '.vue', '.json'],
     alias: {
       '@': path.resolve(__dirname, 'src')
     }
@@ -31,11 +31,11 @@ module.exports = {
         options: { experimentalInlineMatchResource: true }
       },
       {
-        test: /\.js$/,
+        test: /\.[jt]s$/,
         use: [{
           loader: 'builtin:swc-loader',
           options: {
-            jsc: { parser: { syntax: 'ecmascript' } }
+            jsc: { parser: { syntax: 'typescript' } }
           }
         }],
         type: 'javascript/auto'

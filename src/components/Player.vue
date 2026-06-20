@@ -91,7 +91,7 @@
     </div>
   </div>
 </template>
-<script>
+<script lang="ts">
 import moment from "moment";
 import { EventBus } from "../services/Bus";
 import ChatService from "../services/ChatService";
@@ -188,19 +188,6 @@ export default {
 
       EventBus.on(ChatService.CMD.playlist.update, () => {
         this.updatePlaylist();
-      });
-
-      EventBus.on(ChatService.CMD.playlist.current, (args) => {
-         let item = this.playlist.findIndex(val => {
-            return val.src == args[0].src;
-        })
-
-        this.PlayItem(item || 0);
-        this.album = args[0];
-        this.playing = false;
-        this.paused = true;
-        this.currentSecond = args[2] || 0;
-        this.totalSecond = args[3] || 0;
       });
 
       chat.player().current();
