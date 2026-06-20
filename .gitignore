@@ -43,3 +43,4 @@ pnpm-debug.log*
 cache/
 /dist/cache
 /dist/public/cache
+/.opencode
