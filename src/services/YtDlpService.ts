@@ -25,7 +25,7 @@ export class CookieError extends Error {
 
 const CMD = process.platform === "win32" ? "yt-dlp.cmd" : "yt-dlp";
 
-function runYtDlp(args: string[], platform?: CookiePlatform): Promise<string> {
+function runYtDlp(args: string[], platform?: CookiePlatform, timeout?: number): Promise<string> {
   if (platform && cookieExists(platform)) {
     args = ["--cookies", cookiePath(platform), ...args];
   }
@@ -35,6 +35,17 @@ function runYtDlp(args: string[], platform?: CookiePlatform): Promise<string> {
     const proc = spawn(CMD, args, { stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let timedOut = false;
+
+    if (timeout && timeout > 0) {
+      timer = setTimeout(() => {
+        timer = null;
+        timedOut = true;
+        proc.kill();
+        reject(new Error(`timeout after ${timeout}ms`));
+      }, timeout);
+    }
 
     proc.stdout.on("data", (chunk) => {
       stdout += chunk.toString();
@@ -46,23 +57,32 @@ function runYtDlp(args: string[], platform?: CookiePlatform): Promise<string> {
     });
 
     proc.on("close", (code) => {
+      if (timedOut) return;
+      if (timer) clearTimeout(timer);
       const elapsed = Date.now() - startTime;
       const pidMsg = `pid=${proc.pid}`;
       const hasData = stdout.trim().length > 0;
 
       if (code !== 0 && !hasData) {
-        logger.error(`[yt-dlp] exited code=${code} ${pidMsg} (${elapsed}ms), no output: ${stderr.trim()}`);
+        logger.error(
+          `[yt-dlp] exited code=${code} ${pidMsg} (${elapsed}ms), no output: ${stderr.trim()}`,
+        );
         return reject(new Error(`code=${code}: ${stderr.trim()}`));
       }
       if (code !== 0) {
-        logger.warn(`[yt-dlp] exited code=${code} ${pidMsg} (${elapsed}ms), partial data returned`);
+        logger.warn(
+          `[yt-dlp] exited code=${code} ${pidMsg} (${elapsed}ms), partial data returned`,
+        );
       } else {
-        logger.debug(`[yt-dlp] exited code=0 ${pidMsg} (${elapsed}ms) stdout=${stdout.length}bytes`);
+        logger.debug(
+          `[yt-dlp] exited code=0 ${pidMsg} (${elapsed}ms) stdout=${stdout.length}bytes`,
+        );
       }
       resolve(stdout);
     });
 
     proc.on("error", (err) => {
+      if (timer) clearTimeout(timer);
       logger.error(`[yt-dlp] spawn failed pid=${proc.pid}: ${err.message}`);
       reject(err);
     });
@@ -86,12 +106,7 @@ export function resolve(
   url: string,
   platform?: CookiePlatform,
 ): Promise<YtDlpMetadata> {
-  const args = [
-    "--dump-json",
-    "--no-download",
-    "--no-playlist",
-    url,
-  ];
+  const args = ["--dump-json", "--no-download", "--no-playlist", url];
   return runYtDlp(args, platform).then((stdout) => parseMetadata(stdout));
 }
 
@@ -104,20 +119,25 @@ export function search(
     prefix: prefixMap[p] || p,
     platform: p as CookiePlatform,
   }));
+  const SEARCH_TIMEOUT = 30000;
   const promises = queries.map(({ prefix, platform }) =>
     runYtDlp(
-      [
-        "--dump-json",
-        "--no-download",
-        `${prefix}search5:${keyword}`,
-      ],
+      ["--dump-json", "--no-download", `${prefix}search5:${keyword}`],
       platform,
+      SEARCH_TIMEOUT,
     )
       .then((stdout) =>
-        stdout.trim().split("\n").filter(Boolean)
+        stdout
+          .trim()
+          .split("\n")
+          .filter(Boolean)
           .map((line) => {
-            try { return parseMetadata(line); }
-            catch { logger.debug(`[yt-dlp] parse failed: ${line.slice(0, 100)}`); return null; }
+            try {
+              return parseMetadata(line);
+            } catch {
+              logger.debug(`[yt-dlp] parse failed: ${line.slice(0, 100)}`);
+              return null;
+            }
           })
           .filter((m): m is YtDlpMetadata => m !== null),
       )

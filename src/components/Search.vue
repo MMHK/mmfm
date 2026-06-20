@@ -26,9 +26,19 @@
           <h3>Cookie 设定</h3>
           <button @click="showSettings = false" class="btn">✕</button>
         </div>
+        <div class="settings-description">
+          使用 Chrome 擴展 <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc" target="_blank" rel="noopener">Get cookies.txt LOCALLY</a><br />
+          1. 開啟 YouTube/Bilibili 首頁並登入<br />
+          2. 點擊擴展圖示 → 下載 cookies.txt<br />
+          3. 在下方上傳 .txt 檔案
+        </div>
         <div v-for="p in ['youtube', 'bilibili']" :key="p" class="cookie-block">
           <div class="cookie-label">
-            {{ p === "youtube" ? "YouTube" : "Bilibili" }}
+            <a
+              :href="p === 'youtube' ? 'https://www.youtube.com' : 'https://www.bilibili.com'"
+              target="_blank"
+              rel="noopener"
+            >{{ p === "youtube" ? "YouTube" : "Bilibili" }}</a>
             <span class="cookie-status">
               <span
                 :class="[
@@ -48,23 +58,25 @@
         </div>
       </div>
       <div class="list-wrap">
-        <table class="table">
-          <tr class="song-list" :key="item.id" v-for="item in songList">
-            <td class="vendor" width="50">
-              <img width="50%" :src="'image/' + item.vendor + '.png'" />
-            </td>
-            <td class="title">
-              <img @error="onImgError" :src="item.cover" height="50" />
+        <div class="song-list">
+          <div class="song-row" :key="item.id" v-for="item in songList">
+            <div class="col-vendor">
+              <img :src="require('../assets/image/' + item.vendor + '.svg')" />
+            </div>
+            <div class="col-cover">
+              <img @error="onImgError" :src="item.cover" />
+            </div>
+            <div class="col-info">
               <strong v-html="item.name"></strong>
-              <br /><span>{{ item.author }}</span>
-            </td>
-            <td width="40">
-              <a @click="add(item)" class="btn"
-                ><i class="iconfont icon-xinzeng"></i
-              ></a>
-            </td>
-          </tr>
-        </table>
+              <span>{{ item.author }}</span>
+            </div>
+            <div class="col-action">
+              <a @click="add(item)" class="btn">
+                <i class="iconfont icon-xinzeng"></i>
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
       <a @click="close" class="btn btn-close">
         <i class="iconfont icon-close"></i>
@@ -145,11 +157,14 @@ export default {
       return songService
         .preload({
           ...data,
-          src: data.url || data.id,
+          src: data.link || data.id,
         })
         .then((result) => {
           EventBus.emit("song.add", {
-            ...data,
+            id: data.link || data.id,
+            name: data.name,
+            author: data.author,
+            cover: data.cover,
             src: result.src,
           });
           this.$emit("close");

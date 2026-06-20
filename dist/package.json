@@ -1,29 +1,19 @@
 {
-    "name": "mmfm-vue-service",
-    "version": "0.1.0",
-    "private": true,
-    "scripts": {
-      "service": "node ./service.js -b $HOST -d $WEBROOT -p $PORT"
-    },
-    "dependencies": {
-      "encoding": "^0.1.13",
-      "listen1_chrome_extension": "https://github.com/listen1/listen1_chrome_extension.git",
-      "flat-cache": "^3.0.4",
-      "node-forge": "^0.10.0",
-      "dom-parser": "^0.1.6",
-      "async": "^3.2.0",
-      "btoa": "^1.2.1",
-      "axios": "^0.21.1",
-      "axios-cookiejar-support": "^1.0.1",
-      "tough-cookie": "^4.0.0",
-      "url-polyfill": "^1.1.12",
-      "body-parser": "^1.19.0",
-      "cli": "^1.0.1",
-      "express": "^4.17.1",
-      "socket.io": "^4.7.0",
-      "request": "^2.88.0",
-      "core-js": "2",
-      "swagger-ui-express": "^4.0.7",
-      "dotenv": "^17.4.2"
-    }
+  "name": "mmfm-service",
+  "version": "0.1.4",
+  "private": true,
+  "main": "service.js",
+  "packageManager": "yarn@4.17.0",
+  "dependencies": {
+    "mitt": "^3.0.0",
+    "socket.io-client": "^4.7.0",
+    "axios": "^0.21.1",
+    "express": "^4.17.1",
+    "cli": "^1.0.1",
+    "body-parser": "^1.19.0",
+    "swagger-ui-express": "^4.1.1",
+    "socket.io": "^4.7.0",
+    "flat-cache": "^3.0.4",
+    "dotenv": "^17.4.2"
+  }
 }

@@ -32,30 +32,74 @@
         padding: 0.5em 0;
     }
 
-    .table {
+    .song-list {
         width: 100%;
-        line-height: 2;
-        border-collapse:collapse;
-        border: 0;
-
         font-size: rem(14px);
+    }
 
+    .song-row {
+        display: flex;
+        align-items: center;
+        padding: 0.4em 0.5em;
+        line-height: 1.4;
+        cursor: pointer;
+
+        &:nth-child(odd) {
+            background: #d2e6fc;
+        }
+
+        &:hover {
+            background-color: #d2d5da;
+        }
+    }
+
+    .col-vendor {
+        flex: 0 0 40px;
+        text-align: center;
         img {
+            width: 24px;
+            height: 24px;
             vertical-align: middle;
         }
+    }
 
-        .vendor {
-            text-align: center;
+    .col-cover {
+        flex: 0 0 50px;
+        img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            vertical-align: middle;
         }
+    }
 
-        .title > img {
-            float: left;
-            margin-right: 0.5em;
+    .col-info {
+        flex: 1;
+        min-width: 0;
+        padding: 0 0.5em;
+        overflow: hidden;
+        strong {
+            display: block;
+            font-size: 1.1em;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .title > strong {
-            font-size: 1.25em;
-            line-height: 1;
+        span {
+            display: block;
+            font-size: 0.85em;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+    }
+
+    .col-action {
+        flex: 0 0 40px;
+        text-align: center;
     }
 
     .search-input {
@@ -80,17 +124,7 @@
         vertical-align: top;
     }
 
-    .song-list {
-        cursor: pointer;
-        
-        &:nth-child(odd) {
-            background: #d2e6fc;
-        }
 
-        &:hover {
-            background-color: #d2d5da;
-        }
-    }
 }
 
 .search-group {
@@ -137,10 +171,33 @@
         margin-bottom: 1em;
         h3 { margin: 0; font-size: 1rem; color: #333; }
     }
+    .settings-description {
+        font-size: 12px;
+        color: #999;
+        line-height: 1.6;
+        padding: 0 12px 8px;
+        a {
+            color: #4a9eff;
+            text-decoration: none;
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
     .cookie-block {
         border-top: 1px solid #eee;
         padding: 0.75em 0;
-        .cookie-label { font-weight: 500; margin-bottom: 0.3em; }
+        .cookie-label {
+            font-weight: 500;
+            margin-bottom: 0.3em;
+            a {
+                color: #4a9eff;
+                text-decoration: none;
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
         .cookie-status {
             font-size: 0.8rem;
             color: #666;

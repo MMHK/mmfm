@@ -1,4 +1,8 @@
-import express, { type Request, type Response, type NextFunction } from "express";
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import cli from "cli";
 import bodyParser from "body-parser";
 import swaggerUi from "swagger-ui-express";
@@ -12,18 +16,40 @@ import os from "os";
 import flatCache from "flat-cache";
 import dotenv from "dotenv";
 import { logger } from "./logger";
-import { resolve, search, download, CookieError, type YtDlpMetadata } from "./YtDlpService";
-import { cookieStatus, isSupportedPlatform, saveCookie, type CookiePlatform } from "./CookieService";
+import {
+  resolve,
+  search,
+  download,
+  CookieError,
+  type YtDlpMetadata,
+} from "./YtDlpService";
+import {
+  cookieStatus,
+  isSupportedPlatform,
+  saveCookie,
+  type CookiePlatform,
+} from "./CookieService";
+import { stringify } from "querystring";
 
 const app = express();
 
 dotenv.config({ override: true, quiet: true });
 
 const options = cli.parse({
-  host: ["b", "web server listen on address", "ip", process.env.HOST || "0.0.0.0"],
+  host: [
+    "b",
+    "web server listen on address",
+    "ip",
+    process.env.HOST || "0.0.0.0",
+  ],
   port: ["p", "listen on port", "string", process.env.PORT || "8011"],
   webroot: ["d", "web root path", "string", process.env.WEBROOT || "./public"],
-  logLevel: ["l", "log level (error, warn, info, debug)", "string", process.env.LOG_LEVEL || "info"],
+  logLevel: [
+    "l",
+    "log level (error, warn, info, debug)",
+    "string",
+    process.env.LOG_LEVEL || "info",
+  ],
 });
 
 const webRoot: string = options.webroot;
@@ -41,13 +67,15 @@ app.use(
     next();
   },
   swaggerUi.serve,
-  swaggerUi.setup()
+  swaggerUi.setup(),
 );
 
-const isVideoUrl = /^(https?:\/\/)?(www\.youtube\.com|youtu\.be|www\.bilibili\.com|m\.bilibili\.com)\//i;
+const isVideoUrl =
+  /^(https?:\/\/)?(www\.youtube\.com|youtu\.be|www\.bilibili\.com|m\.bilibili\.com)\//i;
 
 function mapExtractor(extractor: string): "youtube" | "bilibili" {
-  if (extractor.includes("youtube") || extractor.includes("Youtube")) return "youtube";
+  if (extractor.includes("youtube") || extractor.includes("Youtube"))
+    return "youtube";
   return "bilibili";
 }
 
@@ -96,12 +124,19 @@ app.get("/api/song/search", async (req: Request, res: Response) => {
     } else {
       const results = await search(keyword);
       results.forEach(cacheTrack);
-      res.send({ status: true, data: groupByVendor(results.map(toSongFormat)) });
+      res.send({
+        status: true,
+        data: groupByVendor(results.map(toSongFormat)),
+      });
     }
   } catch (e) {
     if (e instanceof CookieError) {
       const need = [e.platform];
-      res.status(400).send({ status: false, cookieNeed: need, error: `Cookie 驗證失敗: ${e.platform}` });
+      res.status(400).send({
+        status: false,
+        cookieNeed: need,
+        error: `Cookie 驗證失敗: ${e.platform}`,
+      });
       return;
     }
     res.status(500).send({ status: false, error: (e as Error).message });
@@ -160,9 +195,14 @@ try {
   logger.error("Failed to load playlist:", (err as Error).message);
 }
 
-
 app.post("/song/preload", async (req: Request, res: Response) => {
   const url: string = req.body.url || "";
+  let platform: string = req.body.platform || "";
+
+  if (!platform) {
+    // detect from url
+    platform = url.includes("youtube") ? "youtube" : "bilibili";
+  }
 
   if (!url) {
     res.send(JSON.stringify({ status: 0, url: "" }));
@@ -174,19 +214,23 @@ app.post("/song/preload", async (req: Request, res: Response) => {
 
   if (fs.existsSync(localPath)) {
     const host = req.get("host");
-    res.send(JSON.stringify({ status: 1, url: `http://${host}/cache/${hash}` }));
+    res.send(
+      JSON.stringify({ status: 1, url: `http://${host}/cache/${hash}.mp3` }),
+    );
     return;
   }
 
   try {
-    await download(url, localPath);
+    await download(url, localPath, platform);
   } catch (err) {
     res.send(JSON.stringify({ status: false, error: (err as Error).message }));
     return;
   }
 
   const host = req.get("host");
-  res.send(JSON.stringify({ status: 1, url: `http://${host}/cache/${hash}` }));
+  res.send(
+    JSON.stringify({ status: 1, url: `http://${host}/cache/${hash}.mp3` }),
+  );
 });
 
 app.post("/song/save", async (req: Request, res: Response) => {
@@ -221,29 +265,35 @@ const io = new SocketIO<ClientToServerEvents, ServerToClientEvents>(server, {
 });
 
 io.on("connection", (socket) => {
-  logger.debug("Socket connected:", socket.id);
+  logger.debug("Socket connected:", socket.id, "from", socket.handshake.address);
   socket.join("chat");
+  logger.debug("Socket", socket.id, "joined chat room");
   socket.on("msg", (msg) => {
+    logger.debug("msg from", socket.id, "len:", msg.length);
     socket.to("chat").emit("msg", msg);
   });
   socket.on("disconnect", () => {
-    logger.debug("on disconnect");
+    logger.debug("Socket disconnected:", socket.id);
   });
 
   socket.on("error", (error) => {
-    logger.error(error);
+    logger.error("Socket error from", socket.id, error);
   });
 });
 
 app.post("/api/cookies/:platform", (req: Request, res: Response) => {
   const platform = req.params.platform;
   if (!isSupportedPlatform(platform)) {
-    res.status(400).send({ status: false, error: `Unsupported platform: ${platform}` });
+    res
+      .status(400)
+      .send({ status: false, error: `Unsupported platform: ${platform}` });
     return;
   }
   const content = req.body?.content;
   if (!content || typeof content !== "string" || !content.trim()) {
-    res.status(400).send({ status: false, error: "参数错误: content 必须为非空字符串" });
+    res
+      .status(400)
+      .send({ status: false, error: "参数错误: content 必须为非空字符串" });
     return;
   }
   try {

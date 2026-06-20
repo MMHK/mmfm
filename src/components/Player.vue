@@ -2,11 +2,7 @@
   <div class="player-wrap fm">
     <div id="ablums" class="fm-ablums">
       <div class="fm-ablums-photo">
-        <img
-          :src="album.cover"
-          @error="onImgError"
-          alt="music ablums"
-        />
+        <img :src="album.cover" @error="onImgError" alt="music ablums" />
       </div>
       <div class="fm-ablums-name">
         <h2 class="name-title">
@@ -260,8 +256,6 @@ export default {
         this.playlistCheckClass[i] = this.checkall;
       });
 
-      this.playlistCheckClass[this.playingID] = false;
-
       this.ckecking = this.checkall;
     },
 
@@ -274,7 +268,6 @@ export default {
     },
 
     DelItem: function () {
-      this.playlistCheckClass[this.playingID] = false;
       let playlist = [];
       this.playlistCheckClass.forEach((val, i) => {
         if (!val) {
@@ -418,7 +411,7 @@ export default {
       console.error("Audio playback error:", e);
     },
     onImgError(e) {
-      const fallback = require('../assets/image/default-cover.png');
+      const fallback = require("../assets/image/default-cover.png");
       if (e.target.src !== fallback) e.target.src = fallback;
     },
   },
