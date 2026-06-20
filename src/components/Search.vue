@@ -59,7 +59,7 @@
               <br /><span>{{ item.author }}</span>
             </td>
             <td width="40">
-              <a @click="add(item.vendor, item.id)" class="btn"
+              <a @click="add(item)" class="btn"
                 ><i class="iconfont icon-xinzeng"></i
               ></a>
             </td>
@@ -140,14 +140,18 @@ export default {
         this.fetchSearch();
       }
     },
-    add(vendor, id) {
+    add(data) {
       this.loadingFlag = true;
       return songService
         .preload({
-          src: id,
+          ...data,
+          src: data.url || data.id,
         })
-        .then((data) => {
-          EventBus.emit("song.add", data);
+        .then((result) => {
+          EventBus.emit("song.add", {
+            ...data,
+            src: result.src,
+          });
           this.$emit("close");
         })
         .finally(() => {
