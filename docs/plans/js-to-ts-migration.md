@@ -34,7 +34,7 @@
 
 ### Backend Core Conversion
 - [x] `Bus.js` → `Bus.ts` — Added mitt Event types
-- [x] `MusieApi.js` → `MusieApi.ts` — Defined Track, SearchResult, SearchResponse interfaces
+- [x] `MusieApi.js` → `MusieApi.ts` — Defined Track, SearchResult, SearchResponse interfaces (後續已刪除，改用 `YtDlpService.ts`)
 - [x] `WebService.js` → `WebService.ts` — Express/Socket.IO typed handlers
 
 ### Provider Conversion
@@ -42,6 +42,8 @@
 - [x] `netease.js` → `netease.ts`
 - [x] `kugou.js` → `kugou.ts`
 - [x] `runtime.js` → `runtime.ts` (unused, converted for consistency)
+
+> **後續清理**：TS 遷移完成後，`provider/` 整個目錄及 `MusieApi.ts` 已刪除。後端改用 `YtDlpService.ts` 直接透過 yt-dlp 處理 YouTube/Bilibili 搜尋與下載。
 
 ### Frontend Services Conversion
 - [x] `SearchService.js` → `SearchService.ts` — Added interfaces for search responses

@@ -7,7 +7,7 @@ Violating any mandatory rule → rewrite and fix immediately.
 
 ## 0. Project Overview
 
-MMFM — intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO backend serving music search/playback via multi-provider APIs (Netease, QQ, Migu, Kuwo, Kugou, Bilibili).
+MMFM — intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO backend serving music search/playback via yt-dlp (YouTube, Bilibili).
 
 ### Tech Stack
 - **Vue 3** + Rspack (frontend, Options API)
@@ -56,9 +56,6 @@ MMFM — intranet music radio panel. Vue 3 SPA frontend + Express/Socket.IO back
 Host has Docker installed. **Build and test operations SHOULD run inside Docker** for consistency and reproducibility.
 
 ```bash
-# Build the Docker image (from src/services/ context)
-docker build -t mmfm src/services/
-
 # Build frontend inside container
 docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && yarn build"
 
@@ -70,10 +67,6 @@ docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && yar
 
 # Run tests inside container (single provider)
 docker run --rm -v "$PWD":/app -w /app node:20-alpine sh -c "yarn install && npx mocha tests/mocha.<provider>.test.js"
-
-# Full production workflow (build image, then run)
-docker build -t mmfm src/services/
-docker run -d -p 8011:8011 --name mmfm mmfm
 ```
 
 ### Verification Order
@@ -86,12 +79,11 @@ After making changes, run in this order (prefer Docker when available):
 
 ## 3. Architecture
 
-- **Frontend entry**: `src/main.js` → `src/App.vue` → `src/components/{Player,Search}.vue`
-- **Backend entry**: `src/services/WebService.js` (Express + Socket.IO on port 8011, socket path `/io`)
-- **Music API aggregator**: `src/services/MusieApi.js` (note: filename typo is intentional/historical)
-- **Provider modules**: `src/services/provider/{netease,qq,migu,kuwo,kugou,bilibili}.js`
-- **Event bus**: `src/services/Bus.js` (Vue EventBus for cross-component communication)
-- Backend has its own `src/services/package.json` and `Dockerfile` for standalone Docker deployment
+- **Frontend entry**: `src/main.ts` → `src/App.vue` → `src/components/{Player,Search}.vue`
+- **Backend entry**: `src/services/WebService.ts` (Express + Socket.IO on port 8011, socket path `/io`)
+- **Music API**: `src/services/YtDlpService.ts` — search, resolve, and download tracks via yt-dlp (YouTube, Bilibili)
+- **Logger**: `src/services/logger.ts` — structured logging with LOG_LEVEL support
+- **Event bus**: `src/services/Bus.ts` (Vue EventBus for cross-component communication, powered by `mitt`)
 - **Local player mode**: `Player.vue` supports browser-side HTML5 Audio playback when `LOCAL_PLAYER_MODE=true` (build-time env via DefinePlugin)
 
 ### Key gotchas
@@ -99,10 +91,10 @@ After making changes, run in this order (prefer Docker when available):
 - **Package manager**: yarn (yarn.lock present). `.npmrc` uses npmmirror — may need updating if unreachable.
 - **Dev proxy**: rspack.config.js proxies `/api`, `/io`, `/song`, `/cache` to `127.0.0.1:8011` — backend must be running separately during dev.
 - **splitChunks disabled** in rspack.config.js — single JS bundle output.
-- **Backend bundling**: rspack.config.service.js targets `node`, uses `externalsPresets: { node: true }`. Copies `swagger.json`, `Dockerfile`, and `package.json` to `dist/`.
-- **Tests are live integration tests** hitting real music APIs with timeouts up to 3 hours. No mocks. No test for `mocha.webserice.test.js` exists despite it being the `yarn test` target — run individual provider test files directly.
+- **Backend bundling**: rspack.config.service.js targets `node`, uses `externalsPresets: { node: true }`. Copies `swagger.json` and `package.json` to `dist/`.
+- **Tests are live integration tests** hitting real music APIs (YouTube, Bilibili) with timeouts up to 3 hours. No mocks. No test for `mocha.webserice.test.js` exists despite it being the `yarn test` target — run individual test files directly.
 - **Song list persistence**: Playlist is saved to `cache/playlist.json` (file-based). Loaded on server startup, written on each `/song/save` request.
-- **No TypeScript, no CSS modules**. Styles use SCSS (`sass` implementation, not `node-sass`).
+- **No CSS modules**. Styles use SCSS (`sass` implementation, not `node-sass`).
 - **Docker base**: `node:20-alpine`.
 
 ### Environment Variables
@@ -125,18 +117,17 @@ After making changes, run in this order (prefer Docker when available):
 ### Naming Conventions
 - JavaScript identifiers: `camelCase` for variables/functions, `PascalCase` for components/classes
 - Vue component files: `PascalCase` (e.g., `Player.vue`, `Search.vue`)
-- Provider modules: lowercase (e.g., `netease.js`, `qq.js`)
 - CSS classes: descriptive, no BEM enforcement (follow existing patterns)
 
 ### Error Handling
 - Use basic patterns only: `try/catch` with `.catch()` for promises
 - Log errors with `console.error()` or `console.log()` (existing pattern)
-- Non-fatal errors: log and continue gracefully (see provider `.catch(() => [])` pattern in MusieApi.js)
+- Non-fatal errors: log and continue gracefully (see provider `.catch(() => [])` pattern in YtDlpService.ts)
 
 ### Vue 3 Conventions
 - Use Options API (Vue 3 fully supports Options API; no Composition API migration needed)
 - Component registration: local registration in parent component (see App.vue pattern)
-- Event bus: use `EventBus.on()` / `EventBus.emit()` from `src/services/Bus.js` (powered by `mitt`)
+- Event bus: use `EventBus.on()` / `EventBus.emit()` from `src/services/Bus.ts` (powered by `mitt`)
 - Template syntax: standard Vue 3 directives (`v-if`, `v-for`, `v-model`, etc.)
 - No `this.$set()` — Vue 3 uses Proxy-based reactivity, supports direct index assignment on arrays
 
@@ -156,12 +147,12 @@ After making changes, run in this order (prefer Docker when available):
 
 ### Test Style
 - Use `mocha` + `assert` (project standard)
-- Tests are **live integration tests** hitting real music APIs
+- Tests are **live integration tests** hitting real music APIs (YouTube, Bilibili)
 - Set appropriate timeouts: `this.timeout(600000)` or higher for API calls
 - When API is unreachable, use `this.skip()` if possible
 
 ### Running Tests
-- Run individual provider tests: `npx mocha tests/mocha.<provider>.test.js`
+- Run individual provider tests: `npx mocha tests/mocha.<provider>.test.js` (existing test files: bilibili, kugou, netease, cookie, musicApi)
 - Do NOT run `yarn test` — it points to a non-existent file
 - Tests require network access to real music APIs
 - **Prefer running tests inside Docker** (see Docker commands in Section 2)
@@ -183,7 +174,6 @@ Unless explicitly requested, do not create:
 ### Documentation Principles
 - Keep inline comments minimal and focused on "why" not "what"
 - Update AGENTS.md if architecture or conventions change significantly
-- When adding new provider modules, document any special requirements in this file
 
 ---
 

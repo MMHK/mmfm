@@ -26,16 +26,16 @@
 |---|---|---|
 | 框架 | Express + Socket.IO 2 | ✅ Express + Socket.IO 4 |
 | 打包工具 | webpack (`target: "node"`) + `webpack-node-externals` | ✅ Rspack (`rspack.config.service.js`) |
-| 入口 | `src/services/WebService.js` | ✅ 不變 |
+| 入口 | `src/services/WebService.ts` | ✅ 不變 (從 JS 遷移至 TS) |
 | 輸出 | `dist/service.js` | ✅ 不變 |
-| 附加檔案 | `swagger.json`, `Dockerfile`, `package.json` 複製到 `dist/` | ✅ 同左 + `.dockerignore` |
-| Docker | `node:13-alpine` | ✅ `node:18-alpine` |
+| 附加檔案 | `swagger.json`, `Dockerfile`, `package.json` 複製到 `dist/` | ✅ `swagger.json`, `package.json`（後端 Dockerfile 已刪除） |
+| Docker | `node:13-alpine` | ✅ `node:18-alpine`（後端獨立 Dockerfile 已移除，改用 Docker build context） |
 
 ### Vue 2 特有寫法遷移追蹤
 | 檔案 | Vue 2 寫法 | Vue 3 處理方式 | 狀態 |
 |---|---|---|---|
-| `Bus.js` | `new Vue()` 作為 EventBus | 改用 `mitt` | ✅ |
-| `main.js` | `new Vue({ render: h => h(App) }).$mount('#app')` | `createApp(App).mount('#app')` | ✅ |
+| `Bus.js` | `new Vue()` 作為 EventBus | 改用 `mitt`，檔案遷移至 `Bus.ts` | ✅ |
+| `main.js` | `new Vue({ render: h => h(App) }).$mount('#app')` | `createApp(App).mount('#app')`，檔案遷移至 `main.ts` | ✅ |
 | `Player.vue` | `this.$set(array, index, value)` | 直接索引賦值 `array[index] = value` | ✅ |
 | `Player.vue` | `import draggable from "vuedraggable"` (v2) | `vuedraggable` v4 slot API (`<template #item>`) | ✅ |
 | `Player.vue` | `EventBus.$on` / `EventBus.$emit` | `EventBus.on` / `EventBus.emit` | ✅ |
@@ -43,8 +43,8 @@
 | `Search.vue` | `import { Promise } from 'q'` | 移除，改用原生 `Promise` | ✅ |
 | `Search.vue` | `EventBus.$emit` | `EventBus.emit` | ✅ |
 | `App.vue` | `EventBus.$on` | `EventBus.on` | ✅ |
-| `ChatService.js` | `EventBus.$emit` | `EventBus.emit` | ✅ |
-| `ChatService.js` | `socket.io-client` v2 (`import io`) | v4 (`import { io }`) + transports 設定 | ✅ |
+| `ChatService.ts` | `EventBus.$emit` | `EventBus.emit` | ✅ |
+| `ChatService.ts` | `socket.io-client` v2 (`import io`) | v4 (`import { io }`) + transports 設定 | ✅ |
 | `public/index.html` | `<%= BASE_URL %>favicon.ico` (EJS) | 靜態路徑 `/favicon.ico` | ✅ |
 
 ---
@@ -109,7 +109,7 @@ devDependencies:
   "scripts": {
     "serve": "rspack serve --mode development",
     "build": "rspack build --mode production",
-    "web": "node ./src/services/WebService.js -d ./dist/public",
+    "web": "node ./src/services/WebService.ts -d ./dist/public",
     "build:service": "cross-env NODE_ENV=production rspack --config rspack.config.service.js",
     "lint": "eslint src/",
     "test": "mocha ./tests/mocha.webserice.test.js"
@@ -151,17 +151,17 @@ registry=https://registry.npmmirror.com
 
 **目標**：修改所有前端元件，消除 Vue 2 特有寫法。
 
-#### 3.1 `src/main.js` ✅
+#### 3.1 `src/main.ts` ✅
 
-```js
+```ts
 import { createApp } from 'vue'
 import App from './App.vue'
 createApp(App).mount('#app')
 ```
 
-#### 3.2 `src/services/Bus.js` ✅
+#### 3.2 `src/services/Bus.ts` ✅
 
-```js
+```ts
 import mitt from "mitt";
 const emitter = mitt();
 export { emitter as EventBus };
@@ -189,7 +189,7 @@ export { emitter as EventBus };
 | 移除 `import { Promise } from 'q'` | ✅ |
 | `EventBus.$emit` → `EventBus.emit` | ✅ |
 
-#### 3.6 `src/services/ChatService.js` ✅ (100 行)
+#### 3.6 `src/services/ChatService.ts` ✅ (100 行)
 
 | 變更項 | 狀態 |
 |---|---|
@@ -232,14 +232,13 @@ export { emitter as EventBus };
 |---|---|---|
 | `.eslintrc.js` | `plugin:vue/vue3-essential` + `@babel/eslint-parser` | ✅ |
 | `postcss.config.js` | 已移除 | ✅ |
-
 ---
 
 ### Phase 6 — Socket.IO v2 到 v4 升級 ✅
 
 **目標**：前後端 Socket.IO 同步升級到 v4。
 
-#### 6.1 後端 `src/services/WebService.js` ✅
+#### 6.1 後端 `src/services/WebService.ts` ✅
 
 | 變更項 | 狀態 |
 |---|---|
@@ -247,7 +246,7 @@ export { emitter as EventBus };
 | `new SocketIO(server, { path: "/io" })` | ✅ |
 | socket.io `^4.7.0` | ✅ |
 
-#### 6.2 前端 `src/services/ChatService.js` ✅
+#### 6.2 前端 `src/services/ChatService.ts` ✅
 
 | 變更項 | 狀態 |
 |---|---|
@@ -279,7 +278,7 @@ export { emitter as EventBus };
 ## 2. 決策記錄（已確認）
 | # | 問題 | 決策 | 原因 |
 |---|---|---|---|
-| 1 | 是否引入 TypeScript？ | **否** | 現有程式碼全 JS，引入 TS 會大幅增加工作量 |
+| 1 | 是否引入 TypeScript？ | **否** | 現有程式碼全 JS，引入 TS 會大幅增加工作量（後續已改為採用 TS，見 js-to-ts-migration.md） |
 | 2 | 是否改用 Composition API？ | **否** | Vue 3 完全相容 Options API，改動量最小 |
 | 3 | Socket.IO 是否升級到 v4？ | **是** | v2 已過時，前後端需同步升級 |
 | 4 | `vuedraggable` 升級方案？ | **vuedraggable v4** | 最接近舊 v2 API，改動最小 |
@@ -307,17 +306,17 @@ export { emitter as EventBus };
 - `.npmrc` ✅
 - `.eslintrc.js` ✅
 - `public/index.html` ✅
-- `src/main.js` ✅
+- `src/main.ts` ✅ (從 `main.js` 遷移)
 - `src/App.vue` ✅
 - `src/components/Player.vue` ✅
 - `src/components/Search.vue` ✅
-- `src/services/Bus.js` ✅
-- `src/services/ChatService.js` ✅
-- `src/services/SearchService.js` ✅
-- `src/services/SongService.js` ✅
-- `src/services/WebService.js` ✅
-- `src/services/Dockerfile` ✅
-- `src/services/package.json` ✅
+- `src/services/Bus.ts` ✅ (從 `Bus.js` 遷移)
+- `src/services/ChatService.ts` ✅ (從 `ChatService.js` 遷移)
+- `src/services/SearchService.ts` ✅ (從 `SearchService.js` 遷移)
+- `src/services/SongService.ts` ✅ (從 `SongService.js` 遷移)
+- `src/services/WebService.ts` ✅ (從 `WebService.js` 遷移)
+- `src/services/package.json` ✅ (已刪除)
+- `src/services/Dockerfile` ✅ (已刪除)
 
 ### 已新增（2 個檔案）✅
 - `rspack.config.js` ✅
@@ -331,10 +330,12 @@ export { emitter as EventBus };
 - `.browserslistrc` ✅
 
 ### 未改动
-- 後端 provider 模組（`src/services/provider/*`）
-- 測試檔案（`tests/*`）
-- `src/services/MusieApi.js`
 - SCSS 樣式檔案
+
+### 後續刪除（JS→TS 遷移後清理）
+- `src/services/MusieApi.ts` — 已刪除（music API 聚合器被 yt-dlp 直接取代）
+- `src/services/provider/` 整個目錄 — 已刪除（bilibili.ts, kugou.ts, netease.ts, runtime.ts）
+- 後端不再需要獨立 `package.json` 和 `Dockerfile`
 
 ---
 
@@ -342,8 +343,8 @@ export { emitter as EventBus };
 
 | 項目 | 說明 | 嚴重度 |
 |---|---|---|
-| `global.X` 模式 | `ChatService.js`, `SearchService.js`, `SongService.js` 使用 `global.API_URL` 等，依賴 bundler 將 `index.html` script 變數掛到 global。標準做法應改為 `window.X` 或 ES module imports | 低（可運作） |
-| `qs` 未在 `package.json` | `SongService.js` import `qs` 但未列為依賴，可能靠 transitive install | 中 |
+| `global.X` 模式 | `ChatService.ts`, `SearchService.ts`, `SongService.ts` 使用 `global.API_URL` 等，依賴 bundler 將 `index.html` script 變數掛到 global。標準做法應改為 `window.X` 或 ES module imports | 低（可運作） |
+| `qs` 未在 `package.json` | `SongService.ts` import `qs` 但未列為依賴，可能靠 transitive install | 中 |
 | `dotenv` 未在 `package.json` | `rspack.config.js` 使用 `require('dotenv')` 但未列為 devDependency | 中 |
 | `.eslintrc.js` 格式 | ESLint 9 建議 flat config (`eslint.config.js`)，目前用 legacy 格式仍可運作 | 低 |
 | `test` script 指向不存在檔案 | `mocha ./tests/mocha.webserice.test.js` 檔案不存在 | 低 |
