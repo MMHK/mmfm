@@ -107,3 +107,67 @@
         padding: 2em 0 0 0;
     }
 }
+
+.toast-wrap {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 9999;
+    .toast {
+        padding: 0.6rem 1rem;
+        border-radius: 4px;
+        color: #fff;
+        min-width: 220px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        font-size: 0.9rem;
+        &.toast-error { background: #f53b3b; }
+        &.toast-success { background: #087bff; }
+    }
+}
+.settings-panel {
+    background: #fff;
+    padding: 1em;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    margin: 0.5em 0;
+    .settings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1em;
+        h3 { margin: 0; font-size: 1rem; color: #333; }
+    }
+    .cookie-block {
+        border-top: 1px solid #eee;
+        padding: 0.75em 0;
+        .cookie-label { font-weight: 500; margin-bottom: 0.3em; }
+        .cookie-status {
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: normal;
+            margin-left: 0.5em;
+            .status-dot {
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                margin-right: 4px;
+                vertical-align: middle;
+            }
+            .status-exists { background: #2ecc71; }
+            .status-missing { background: #bbb; }
+        }
+        input[type="file"] { margin-right: 0.5em; font-size: 0.85rem; }
+        .btn-upload {
+            background: #087bff;
+            color: #fff;
+            padding: 0.15em 0.5em;
+            border-radius: 5px;
+        }
+    }
+}
+.btn-settings {
+    font-size: 1.1rem;
+    margin-left: 0.3em;
+    &:hover { color: #087bff; }
+}
