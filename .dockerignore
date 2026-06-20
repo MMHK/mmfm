@@ -1,7 +1,7 @@
 # Dependencies
 node_modules
 
-# Build output
+# Old build output (will be regenerated during Docker build)
 dist
 
 # Environment files
@@ -48,15 +48,15 @@ tests
 eslint.config.*
 .prettierrc*
 tsconfig.json
-rspack.config.js
-rspack.config.service.js
 
-# Yarn
+# Yarn PnP
 .yarn
-.yarnrc.yml
-.npmrc
 .pnp.*
 
 # Misc
 *.cmd
 *.bat
+
+# Docker
+Dockerfile
+docker-compose.yml

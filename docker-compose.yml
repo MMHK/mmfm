@@ -1,0 +1,57 @@
+services:
+  build-img:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+        # - linux/arm/v7
+      extra_hosts:
+        - "dl-cdn.alpinelinux.org=151.101.194.132"
+        - "registry.yarnpkg.com=104.16.0.34"
+        - "repo.yarnpkg.com=104.16.169.120"
+    image: mmhk/mmfm
+
+  mmfm:
+    image: mmhk/mmfm
+    container_name: mmfm-backend
+    init: true
+    ports:
+      - "8011:8011"
+    environment:
+      - HOST=${HOST:-0.0.0.0}
+      - WEBROOT=/app/public
+      - PORT=${PORT:-8011}
+      - VIRTUAL_ENV=/opt/venv
+      - LOG_LEVEL=debug
+      - COOKIE_DIR=/app/public/cache/cookies
+    volumes:
+      - mmfm-cache:/app/public/cache
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    extra_hosts:
+      - "dl-cdn.alpinelinux.org=151.101.194.132"
+      - "registry.yarnpkg.com=104.16.0.34"
+      - "repo.yarnpkg.com=104.16.169.120"
+      - "api.bilibili.com=120.240.224.18"
+      - "www.bilibili.com=120.233.87.118"
+    restart: unless-stopped
+
+  test:
+    image: mmhk/mmfm
+    container_name: mmfm-test
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "=== Verifying dependencies ==="
+        echo "Node: $$(node --version)"
+        echo "Python: $$(python3 --version)"
+        echo "ffmpeg: $$(ffmpeg -version | head -1)"
+        echo "yt-dlp: $$(yt-dlp --version)"
+        echo "=== All dependencies OK ==="
+    profiles:
+      - test
+
+volumes:
+  mmfm-cache:
