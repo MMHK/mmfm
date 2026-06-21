@@ -20,6 +20,7 @@ import {
   resolve,
   search,
   download,
+  audioInfo,
   CookieError,
   type YtDlpMetadata,
 } from "./YtDlpService";
@@ -29,6 +30,7 @@ import {
   saveCookie,
   type CookiePlatform,
 } from "./CookieService";
+import { DlnaRenderer, type PlaylistItem } from "./DlnaRenderer";
 import { stringify } from "querystring";
 
 const app = express();
@@ -249,6 +251,30 @@ app.get("/song/get", async (req: Request, res: Response) => {
   await res.send(SongList);
 });
 
+app.get("/youtube/audio-info", async (req: Request, res: Response) => {
+  const url = req.query.url as string;
+
+  if (!url) {
+    res.status(400).send({ status: false, error: "Missing url parameter" });
+    return;
+  }
+
+  try {
+    const audioItem = await audioInfo(url);
+    res.send(audioItem);
+  } catch (e) {
+    if (e instanceof CookieError) {
+      res.status(400).send({
+        status: false,
+        cookieNeed: [e.platform],
+        error: `Cookie 驗證失敗: ${e.platform}`,
+      });
+      return;
+    }
+    res.status(500).send({ status: false, error: (e as Error).message });
+  }
+});
+
 interface ClientToServerEvents {
   msg: (data: string) => void;
   disconnect: () => void;
@@ -263,6 +289,31 @@ const server = http.createServer(app);
 const io = new SocketIO<ClientToServerEvents, ServerToClientEvents>(server, {
   path: "/io",
 });
+
+const dlna = new DlnaRenderer({
+  port: parseInt(options.port),
+  host: options.host === "0.0.0.0" ? "0.0.0.0" : options.host,
+  deviceName: process.env.DLNA_DEVICE_NAME || "MMFM",
+  cacheDir,
+  onSongAdded: (item: PlaylistItem) => {
+    SongList.push(item);
+    try {
+      fs.writeFileSync(playlistFile, JSON.stringify(SongList, null, 2), "utf8");
+    } catch (err: unknown) {
+      logger.error("[DLNA] Failed to save playlist:", (err as Error).message);
+    }
+    logger.info("[DLNA] Song added to playlist:", item.name);
+  },
+  broadcastPlaylist: () => {
+    io.to("chat").emit("msg", JSON.stringify({
+      type: "chat",
+      command: "playlist",
+      action: "update",
+    }));
+  },
+  io,
+});
+dlna.registerRoutes(app);
 
 io.on("connection", (socket) => {
   logger.debug("Socket connected:", socket.id, "from", socket.handshake.address);
@@ -319,10 +370,14 @@ server.listen(options.port, options.host, () => {
   logger.info(`Cache Dir: ${cacheDir}`);
   logger.info(`Playlist : ${playlistFile} (${SongList.length} songs)`);
   logger.info(`PID      : ${process.pid}`);
+  dlna.start().catch((e) => {
+    logger.error("[DLNA] SSDP start failed:", e);
+  });
 });
 
 function gracefulShutdown(signal: string) {
   logger.info(`Received ${signal}, shutting down gracefully...`);
+  dlna.stop();
   io.close();
   server.close(() => {
     logger.info("Server closed");

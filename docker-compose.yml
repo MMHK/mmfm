@@ -17,7 +17,10 @@ services:
     container_name: mmfm-backend
     init: true
     ports:
-      - "8011:8011"
+      - "8011:8011/udp"
+      - "8011:8011/tcp"
+      - "192.168.3.23:8011:8011/udp"
+      - "192.168.3.23:8011:8011/tcp"
     environment:
       - HOST=${HOST:-0.0.0.0}
       - WEBROOT=/app/public

@@ -18,6 +18,10 @@
     {
       "name": "cookies",
       "description": "yt-dlp cookie file management"
+    },
+    {
+      "name": "youtube",
+      "description": "YouTube audio extraction"
     }
   ],
   "paths": {
@@ -262,6 +266,36 @@
         }
       }
     },
+    "/youtube/audio-info": {
+      "get": {
+        "tags": ["youtube"],
+        "summary": "get YouTube audio info (PlaylistItem format)",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "type": "string",
+            "description": "YouTube video URL",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": { "$ref": "#/definitions/PlaylistItem" }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": { "$ref": "#/definitions/ErrorResponse" }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": { "$ref": "#/definitions/ErrorResponse" }
+          }
+        }
+      }
+    },
     "/song/save": {
       "post": {
         "tags": [
@@ -335,7 +369,7 @@
         ],
         "summary": "preload a song url, conver to local url",
         "consumes": [
-          "application/json"
+          "application/x-www-form-urlencoded"
         ],
         "produces": [
           "application/json"
@@ -354,6 +388,11 @@
                 "url": {
                   "type": "string",
                   "description": "Audio URL to preload"
+                },
+                "platform": {
+                  "type": "string",
+                  "enum": ["youtube", "bilibili"],
+                  "description": "Platform hint; auto-detected from URL if omitted"
                 }
               }
             }
@@ -444,6 +483,16 @@
             "bilibili"
           ]
         }
+      }
+    },
+    "PlaylistItem": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Video page URL" },
+        "name": { "type": "string", "description": "Track title" },
+        "author": { "type": "string", "description": "Uploader" },
+        "cover": { "type": "string", "description": "Thumbnail URL" },
+        "src": { "type": "string", "description": "Original page URL (resolved to real audio via /song/preload)" }
       }
     },
     "SongGroup": {

@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import { logger } from "./logger";
 import { cookiePath, cookieExists, type CookiePlatform } from "./CookieService";
+import type { PlaylistItem } from "./SongService";
 
 export interface YtDlpMetadata {
   id: string;
@@ -25,7 +26,11 @@ export class CookieError extends Error {
 
 const CMD = process.platform === "win32" ? "yt-dlp.cmd" : "yt-dlp";
 
-function runYtDlp(args: string[], platform?: CookiePlatform, timeout?: number): Promise<string> {
+function runYtDlp(
+  args: string[],
+  platform?: CookiePlatform,
+  timeout?: number,
+): Promise<string> {
   if (platform && cookieExists(platform)) {
     args = ["--cookies", cookiePath(platform), ...args];
   }
@@ -161,6 +166,8 @@ export function download(
     "--audio-quality",
     "0",
     "--no-playlist",
+    "--embed-metadata",
+    "--embed-thumbnail",
     "-o",
     `${outputPath}.%(ext)s`,
     "--ppa",
@@ -168,4 +175,15 @@ export function download(
     url,
   ];
   return runYtDlp(args, platform).then(() => undefined);
+}
+
+export async function audioInfo(url: string): Promise<PlaylistItem> {
+  const meta = await resolve(url);
+  return {
+    id: meta.webpage_url,
+    name: meta.title,
+    author: meta.uploader,
+    cover: meta.thumbnail || "",
+    src: url,
+  };
 }

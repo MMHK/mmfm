@@ -348,3 +348,38 @@
         width: 100%;
     }
 }
+
+.fm-tools .fm-add-url::placeholder {
+    color: #b0c4d4;
+    font-size: 0.85em;
+}
+
+.fm-tools .fm-add-url:disabled {
+    background: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.fm-tools .btn.is-loading {
+    cursor: wait;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.fm-tools .btn.is-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.fm-tools .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #ccc;
+    border-top-color: #333;
+    border-radius: 50%;
+    animation: fm-spin 0.6s linear infinite;
+}
+
+@keyframes fm-spin {
+    to { transform: rotate(360deg); }
+}

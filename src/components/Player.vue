@@ -47,13 +47,26 @@
           class="fm-add-url"
           type="text"
           v-model="playURL"
+          placeholder="貼上 YouTube 連結..."
+          :disabled="loading"
         />
-        <a v-on:click="searchSong" id="add" title="添加" class="btn">
-          <i class="iconfont icon-xinzeng"></i>
+        <a v-on:click="handleAddYouTube" id="add" title="添加" class="btn" :class="{ 'is-loading': loading }">
+          <i v-if="loading" class="spinner"></i>
+          <i v-else class="iconfont icon-xinzeng"></i>
         </a>
-        <a v-on:click="searchSong" id="search" title="搜索" class="btn">
+        <a v-on:click="searchSong" id="search" title="搜索" class="btn" :class="{ 'is-disabled': loading }">
           <i class="iconfont icon-search"></i>
         </a>
+      </div>
+      <div class="toast-wrap" v-if="toast.visible">
+        <div
+          :class="[
+            'toast',
+            toast.type === 'error' ? 'toast-error' : 'toast-success',
+          ]"
+        >
+          {{ toast.message }}
+        </div>
       </div>
       <div class="fm-list-title">
         <i class="iconfont icon-list"></i> 歌曲列表
@@ -129,6 +142,7 @@ import { EventBus } from "../services/Bus";
 import ChatService from "../services/ChatService";
 import SongService from "../services/SongService";
 import draggable from "vuedraggable";
+import axios from "axios";
 
 let chat = new ChatService();
 let song = new SongService();
@@ -155,6 +169,9 @@ export default {
       playingClass: [],
       playlistCheckClass: [],
       audio: null,
+      loading: false,
+      toast: { visible: false, message: "", type: "info" },
+      toastTimer: null,
     };
   },
 
@@ -410,6 +427,52 @@ export default {
     onAudioError(e) {
       console.error("Audio playback error:", e);
     },
+    showToast(message, type = "info") {
+      this.toast = { visible: true, message, type };
+      if (this.toastTimer) clearTimeout(this.toastTimer);
+      this.toastTimer = setTimeout(() => {
+        this.toast.visible = false;
+      }, 3000);
+    },
+
+    async handleAddYouTube() {
+      const url = (this.playURL || "").trim();
+      if (!url) return;
+
+      if (!this.isYouTubeUrl(url)) {
+        this.showToast("請輸入有效的 YouTube 連結", "error");
+        return;
+      }
+
+      this.loading = true;
+      this.showToast("正在獲取音頻信息...", "info");
+
+      try {
+      const { data: audioItem } = await axios.get("/youtube/audio-info", {
+        params: { url },
+      });
+
+        const item = await song.preload({
+          src: audioItem.src,
+          ...audioItem,
+        });
+
+        this.playlist.push(item);
+        this.playURL = "";
+        this.sortPlayList();
+        this.showToast("添加成功", "success");
+      } catch (error) {
+        console.error("[handleAddYouTube] Error:", error);
+        this.showToast("添加失敗", "error");
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    isYouTubeUrl(url) {
+      return /^https?:\/\/(www\.youtube\.com|youtu\.be)\/.+/i.test(url);
+    },
+
     onImgError(e) {
       const fallback = require("../assets/image/default-cover.png");
       if (e.target.src !== fallback) e.target.src = fallback;

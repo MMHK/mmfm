@@ -88,6 +88,7 @@ module.exports = {
       { context: ['/api'], target: 'http://127.0.0.1:8011', changeOrigin: true },
       { context: ['/io'], target: 'http://127.0.0.1:8011', changeOrigin: true, ws: true },
       { context: ['/song'], target: 'http://127.0.0.1:8011', changeOrigin: true },
+      { context: ['/youtube'], target: 'http://127.0.0.1:8011', changeOrigin: true },
       { context: ['/cache'], target: 'http://127.0.0.1:8011', changeOrigin: true }
     ]
   },
