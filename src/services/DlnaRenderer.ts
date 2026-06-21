@@ -1,6 +1,7 @@
 import { Server as SsdpServer } from "node-ssdp";
 import { XMLParser } from "fast-xml-parser";
 import { Router, type Request, type Response, type Application } from "express";
+import bodyParser from "body-parser";
 import type { Server as SocketIOServer } from "socket.io";
 import crypto from "crypto";
 import fs from "fs";
@@ -586,11 +587,12 @@ export class DlnaRenderer {
         res.set("Content-Type", "application/xml; charset=utf-8");
         res.send(getRenderingControlXml());
       });
+    router.use(bodyParser.text({ type: ["text/xml", "application/xml"] }));
     router.post("/dlna/avtransport", (req: Request, res: Response) => {
-      handleAvTransport(this, req.body, res);
+      handleAvTransport(this, req.body as string, res);
     });
     router.post("/dlna/rendering", (req: Request, res: Response) => {
-      handleRendering(req.body, res);
+      handleRendering(req.body as string, res);
     });
     router.all("/dlna/event", (req: Request, res: Response) => {
       if (req.method === "SUBSCRIBE") handleSubscribe(this, req, res);
