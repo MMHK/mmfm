@@ -213,8 +213,9 @@ app.post("/song/preload", async (req: Request, res: Response) => {
 
   const hash = crypto.createHash("md5").update(url).digest("hex");
   const localPath = path.join(cacheDir, hash);
+  const cachedFile = path.join(cacheDir, `${hash}.mp3`);
 
-  if (fs.existsSync(localPath)) {
+  if (fs.existsSync(cachedFile)) {
     const host = req.get("host");
     res.send(
       JSON.stringify({ status: 1, url: `http://${host}/cache/${hash}.mp3` }),
@@ -226,6 +227,11 @@ app.post("/song/preload", async (req: Request, res: Response) => {
     await download(url, localPath, platform);
   } catch (err) {
     res.send(JSON.stringify({ status: false, error: (err as Error).message }));
+    return;
+  }
+
+  if (!fs.existsSync(cachedFile)) {
+    res.send(JSON.stringify({ status: false, error: "Download failed: cache file not created" }));
     return;
   }
 

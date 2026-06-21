@@ -12,6 +12,7 @@ export interface PlaylistItem {
 interface PreloadResponse {
   status: boolean;
   url: string;
+  error?: string;
 }
 
 interface SongInput {
@@ -75,7 +76,7 @@ export default class SongService {
           song.src = dest;
           return Promise.resolve(song);
         }
-        return Promise.reject();
+        return Promise.reject(data.error);
       });
   }
 
